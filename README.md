@@ -4,7 +4,7 @@
 
 ## Быстрый вход
 
-- **Гостевое приглашение:** https://pelza83.github.io/eventflow-demo/
+- **Гостевое приглашение:** персональная ссылка вида `https://pelza83.github.io/eventflow-demo/?token=...` (тестовый токен запрашивать у владельца проекта; не публиковать в документации).
 - **Кабинет организатора:** https://pelza83.github.io/eventflow-demo/organizer.html
 - **Исходники:** `index.html`, `organizer.html`
 - **SQL-снимки:** каталог `database/`
