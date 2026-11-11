@@ -532,7 +532,7 @@
           guest.rsvp_status === 'confirmed' ? 'yes' :
           guest.rsvp_status === 'declined' ? 'no' : null;
 
-        const currentAttendance = selected ? selected.value : null;
+        const currentAttendance = selected ? selected.dataset.value : null;
 
         if (currentAttendance !== initialAttendance) {
           responses.push({
@@ -584,7 +584,7 @@
           const guestItem = document.querySelectorAll('.guest-item')[index];
           const selected = guestItem?.querySelector('.guest-choice.is-selected');
           guest.rsvp_status = selected
-            ? (selected.value === 'yes' ? 'confirmed' : 'declined')
+            ? (selected.dataset.value === 'yes' ? 'confirmed' : 'declined')
             : 'pending';
         });
 
