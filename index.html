@@ -401,7 +401,6 @@
               name="${radioName}"
               value="yes"
               ${yesChecked ? 'checked' : ''}
-              required
             >
             <span>Приду</span>
           </label>
@@ -412,11 +411,20 @@
               name="${radioName}"
               value="no"
               ${noChecked ? 'checked' : ''}
-              required
             >
             <span>Не смогу</span>
           </label>
         `;
+
+        // Повторное нажатие на выбранный вариант снимает выбор
+        options.querySelectorAll('input[type="radio"]').forEach(input => {
+          input.addEventListener('click', clickEvent => {
+            if (input.checked) {
+              clickEvent.preventDefault();
+              input.checked = false;
+            }
+          });
+        });
 
         guestItem.appendChild(guestName);
         guestItem.appendChild(options);
@@ -518,7 +526,8 @@
 
       const responses = [];
 
-      // Собираем ответы всех гостей
+      // Собираем только изменившиеся ответы.
+      // Снятый ранее выбранный ответ отправляем как pending.
 
       for (let i = 0; i < invitationGuests.length; i++) {
         const guest = invitationGuests[i];
@@ -527,20 +536,25 @@
           'input[name="guest-' + i + '"]:checked'
         );
 
-        if (!selected) {
-          status.textContent =
-            'Пожалуйста, выберите ответ для каждого гостя.';
+        const initialAttendance =
+          guest.rsvp_status === 'confirmed' ? 'yes' :
+          guest.rsvp_status === 'declined' ? 'no' : null;
 
-          status.classList.add('error');
-          return;
+        const currentAttendance = selected ? selected.value : null;
+
+        if (currentAttendance !== initialAttendance) {
+          responses.push({
+            guest_id: guest.id,
+            attendance: currentAttendance || 'pending'
+          });
         }
+      }
 
-        responses.push({
-          guest_id: guest.id,
-          attendance: selected.value
-        });
-
-      } // Закрываем цикл FOR
+      if (responses.length === 0) {
+        status.textContent = 'Нет изменений для отправки. Выберите или снимите ответ хотя бы у одного гостя.';
+        status.classList.add('error');
+        return;
+      }
 
       const comment = document
         .getElementById('rsvp-comment')
@@ -571,6 +585,17 @@
           'Спасибо! Ваш ответ успешно сохранён.';
 
         status.classList.add('success');
+
+        // Обновляем исходные статусы в памяти, чтобы следующие изменения
+        // сравнивались с последними успешно сохранёнными ответами.
+        invitationGuests.forEach((guest, index) => {
+          const selected = document.querySelector(
+            'input[name="guest-' + index + '"]:checked'
+          );
+          guest.rsvp_status = selected
+            ? (selected.value === 'yes' ? 'confirmed' : 'declined')
+            : 'pending';
+        });
 
         console.log('EventFlow: RSVP сохранён', data);
 
