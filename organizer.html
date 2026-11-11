@@ -616,7 +616,7 @@ function renderGuests(guests) {
     const details = document.createElement('div');
     const name = document.createElement('div');
     name.className = 'guest-name';
-    name.textContent = [guest.first_name, guest.last_name].filter(Boolean).join(' ');
+    name.textContent = guest.first_name || '';
     details.appendChild(name);
 
     if (guest.group_name) {
