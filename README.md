@@ -1,30 +1,54 @@
 # EventFlow Demo
 
-Публичная демонстрационная копия исходного проекта EventFlow.
+Публичная рабочая демонстрация сервиса EventFlow — электронные приглашения и сбор ответов гостей (RSVP).
 
-- **Invitation page:** `index.html`
-- **Organizer demo:** `organizer.html`
-- **Database source:** `database/`
+## Быстрый вход
 
-## Current demo status
+- **Гостевое приглашение:** https://pelza83.github.io/eventflow-demo/
+- **Кабинет организатора:** https://pelza83.github.io/eventflow-demo/organizer.html
+- **Исходники:** `index.html`, `organizer.html`
+- **SQL-снимки:** каталог `database/`
 
-The organizer interface currently runs as a static frontend demo. Open `organizer.html` and use demo code `1234`. This is a demonstration gate only, **not authentication**. The dashboard uses hardcoded sample data and does not read or modify real events.
+## Текущий статус
 
-The invitation page is a frontend implementation, but its backend is intentionally **not connected** in this public copy. The Supabase project URL and publishable key from the private working repository were not copied. Connect this page only to a separate DEMO Supabase project after its access rules and test data have been verified.
+Это уже не статический макет: гостевая страница и кабинет организатора подключены к отдельному демонстрационному проекту Supabase.
 
-The SQL files are a snapshot of the current implementation for review and further development. Do not run them against a production database without a separate migration/review process.
+Проверено 11 ноября 2026:
+- персональная гостевая страница загружает данные из Supabase;
+- ответы «Приду» / «Не смогу» сохраняются, могут быть изменены или сброшены;
+- сохранённый ответ отображается после перезагрузки;
+- кабинет получает из Supabase мероприятие, статистику и список гостей;
+- фильтры «Все», «Придут», «Не придут», «Ожидают» работают;
+- демо содержит 3 вымышленных гостя.
 
-## Notes from the copy
+Код входа в кабинет `1234` — только демонстрационный gate, **не аутентификация и не защита**.
 
-- The invitation frontend was aligned with the response shape in `database/03_get_invitation.sql` (`event.date` and `event.time`).
-- No Git history from the private working repository was copied.
-- No service-role key, password, or live Supabase project configuration is included.
-- The sample names in the seed data and organizer screen are fictional demonstration data.
+## Документация для передачи проекта
 
-## Project boundaries
+**Перед началом любых изменений прочитайте [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).**
 
-This repository is a public development/demo snapshot. It is not the production environment and does not grant access to the private working repository or its Supabase project.
+В документе описаны:
+- реализованные и проверенные функции;
+- структура Supabase и RPC;
+- контрольные SHA файлов;
+- ограничения и риски безопасности;
+- принятые решения по нагрузке и автообновлению;
+- ближайшие шаги;
+- обязательные правила для сторонних разработчиков и ИИ-помощников.
 
-Project context and handoff entry point:
+## Границы и безопасность
+
+- Этот репозиторий — публичная демоверсия. Приватный репозиторий `PelzA83/EventFlow` не изменять.
+- Production-версия ещё не создана; её нужно проектировать и разворачивать отдельно.
+- В клиентском коде используется Supabase publishable key. **Никогда не добавлять Service Role Key, пароли или другие секреты.**
+- Не публиковать персональные токены приглашений и реальные персональные данные.
+- Не запускать seed SQL повторно без необходимости и не выполнять тестовые запросы на production.
+- SQL-файлы в репозитории — документационные/рабочие снимки; перед применением сверять их с актуальным состоянием базы.
+- Не считать демонстрационный gate полноценной авторизацией.
+
+## Принцип разработки
+
+Сохранять простую архитектуру статических HTML/CSS/JavaScript-файлов и GitHub Pages. Не вводить Next.js, npm или дополнительную инфраструктуру без отдельного согласования. Перед изменением файла получать его свежую версию и актуальный SHA.
+
+Контекст проекта и дополнительная точка передачи:
 https://pelza83.github.io/eventflow-project-hub/
-
