@@ -20,7 +20,10 @@ CREATE TABLE public.guest_groups (
         ON DELETE CASCADE,
     name TEXT NOT NULL,
     access_token TEXT NOT NULL UNIQUE
-        DEFAULT encode(gen_random_bytes(24), 'hex'),
+        DEFAULT (
+            replace(gen_random_uuid()::text, '-', '') ||
+            replace(gen_random_uuid()::text, '-', '')
+        ),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
