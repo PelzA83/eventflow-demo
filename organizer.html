@@ -233,7 +233,7 @@ input:focus {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin-bottom: 30px;
 }
@@ -317,7 +317,7 @@ input:focus {
 
 @media (max-width: 550px) {
   .card { padding: 25px 20px; }
-  .stats { gap: 8px; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .stat { padding: 14px 10px; }
   .stat-number { font-size: 27px; }
   .stat-label { font-size: 10px; }
@@ -415,50 +415,24 @@ input:focus {
       </div>
     </div>
 
-    <h1 class="event-title">Свадьба Александра и Марии</h1>
-
-    <div class="event-date">
-      12 июня 2027 · 16:00
-    </div>
+    <h1 class="event-title" id="eventTitle">Загрузка мероприятия…</h1>
+    <div class="event-date" id="eventDate"></div>
+    <div class="message" id="dashboardMessage" role="status"></div>
 
     <div class="stats">
-      <div class="stat">
-        <div class="stat-number">3</div>
-        <div class="stat-label">Всего гостей</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-number">2</div>
-        <div class="stat-label">Придут</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-number">1</div>
-        <div class="stat-label">Не придут</div>
-      </div>
+      <div class="stat"><div class="stat-number" id="totalGuests">—</div><div class="stat-label">Всего гостей</div></div>
+      <div class="stat"><div class="stat-number" id="confirmedGuests">—</div><div class="stat-label">Придут</div></div>
+      <div class="stat"><div class="stat-number" id="declinedGuests">—</div><div class="stat-label">Не придут</div></div>
+      <div class="stat"><div class="stat-number" id="pendingGuests">—</div><div class="stat-label">Ожидают ответа</div></div>
     </div>
 
     <div class="panel">
       <h2>Список гостей</h2>
 
-      <div class="guest">
-        <span class="guest-name">Александр Иванов</span>
-        <span class="status yes">Придёт</span>
-      </div>
+      <div id="guestList"><div class="guest-name">Загружаем список гостей…</div></div>
 
-      <div class="guest">
-        <span class="guest-name">Мария Иванова</span>
-        <span class="status yes">Придёт</span>
-      </div>
-
-      <div class="guest">
-        <span class="guest-name">Максим Иванов</span>
-        <span class="status yes">Придёт</span>
-      </div>
-
-      <div class="dash-note">
-        Демонстрационные данные. Изменения в этом кабинете
-        не затрагивают реальные мероприятия.
+      <div class="dash-note" id="dashboardNote">
+        Данные тестового мероприятия загружаются из базы данных.
       </div>
     </div>
 
@@ -466,18 +440,136 @@ input:focus {
 </div>
 
 <script>
+
+const SUPABASE_URL = 'https://rwzkgdgskvuglfgqbfdc.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Y3uWZnvQo7c9gsBLjZyZIA_KFLKoU2D';
+
+function formatEventDate(dateString) {
+  if (!dateString) return '';
+  const parts = dateString.split('-').map(Number);
+  const date = new Date(parts[0], parts[1] - 1, parts[2]);
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  }).format(date);
+}
+
+function setText(id, value) {
+  document.getElementById(id).textContent = value ?? '';
+}
+
+function renderGuests(guests) {
+  const list = document.getElementById('guestList');
+  list.replaceChildren();
+
+  if (!guests || guests.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'guest-name';
+    empty.textContent = 'Пока нет добавленных гостей.';
+    list.appendChild(empty);
+    return;
+  }
+
+  guests.forEach(guest => {
+    const row = document.createElement('div');
+    row.className = 'guest';
+
+    const details = document.createElement('div');
+    const name = document.createElement('div');
+    name.className = 'guest-name';
+    name.textContent = [guest.first_name, guest.last_name].filter(Boolean).join(' ');
+    details.appendChild(name);
+
+    if (guest.group_name) {
+      const group = document.createElement('div');
+      group.className = 'hint';
+      group.textContent = guest.group_name;
+      details.appendChild(group);
+    }
+
+    if (guest.comment) {
+      const comment = document.createElement('div');
+      comment.className = 'hint';
+      comment.textContent = 'Комментарий: ' + guest.comment;
+      details.appendChild(comment);
+    }
+
+    const status = document.createElement('span');
+    status.className = 'status';
+    if (guest.rsvp_status === 'confirmed') {
+      status.classList.add('yes');
+      status.textContent = 'Придёт';
+    } else if (guest.rsvp_status === 'declined') {
+      status.classList.add('no');
+      status.textContent = 'Не сможет';
+    } else {
+      status.classList.add('pending');
+      status.textContent = 'Ожидаем ответ';
+    }
+
+    row.append(details, status);
+    list.appendChild(row);
+  });
+}
+
+async function loadDashboard() {
+  const message = document.getElementById('dashboardMessage');
+  const list = document.getElementById('guestList');
+  message.style.color = '#89877f';
+  message.textContent = 'Загружаем данные мероприятия…';
+  list.textContent = 'Загружаем список гостей…';
+
+  try {
+    const response = await fetch(
+      SUPABASE_URL + '/rest/v1/rpc/get_organizer_dashboard',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_PUBLISHABLE_KEY
+        },
+        body: '{}'
+      }
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || result.error || 'Ошибка загрузки данных');
+    }
+
+    const event = result.event;
+    const stats = result.stats;
+    if (!event || !stats) throw new Error('Сервер вернул неполные данные');
+
+    setText('eventTitle', event.title);
+    const time = event.event_time ? event.event_time.slice(0, 5) : '';
+    setText('eventDate', formatEventDate(event.event_date) + (time ? ' · ' + time : ''));
+    setText('totalGuests', stats.total_guests);
+    setText('confirmedGuests', stats.confirmed_count);
+    setText('declinedGuests', stats.declined_count);
+    setText('pendingGuests', stats.pending_count);
+    renderGuests(result.guests || []);
+
+    const venue = [event.venue_name, event.venue_address].filter(Boolean).join(' · ');
+    document.getElementById('dashboardNote').textContent = venue
+      ? 'Место проведения: ' + venue + '. Данные загружены из Supabase.'
+      : 'Демонстрационные данные загружены из Supabase. Место проведения пока не указано.';
+    message.textContent = '';
+  } catch (error) {
+    console.error('Organizer dashboard error:', error);
+    message.style.color = '#a24b42';
+    message.textContent = 'Не удалось загрузить данные. ' + error.message;
+    list.textContent = 'Список гостей временно недоступен.';
+  }
+}
+
 let currentMode = 'demo';
 
 function setMode(mode) {
   currentMode = mode;
 
-  document.getElementById('demoTab').classList.toggle(
-    'active', mode === 'demo'
-  );
-
-  document.getElementById('realTab').classList.toggle(
-    'active', mode === 'real'
-  );
+  document.getElementById('demoTab').classList.toggle('active', mode === 'demo');
+  document.getElementById('realTab').classList.toggle('active', mode === 'real');
 
   const phoneHint = document.getElementById('phoneHint');
   const demoHint = document.getElementById('demoHint');
@@ -488,49 +580,42 @@ function setMode(mode) {
   code.value = '';
 
   if (mode === 'demo') {
-    phoneHint.textContent =
-      'Необязательно для демонстрационного входа.';
-
+    phoneHint.textContent = 'Необязательно для демонстрационного входа.';
     demoHint.style.display = 'block';
     button.textContent = 'Войти в кабинет';
     code.placeholder = 'Введите код';
   } else {
-    phoneHint.textContent =
-      'Для реального входа потребуется подтверждение телефона по SMS.';
-
+    phoneHint.textContent = 'Для реального входа потребуется подтверждение телефона по SMS.';
     demoHint.style.display = 'none';
     button.textContent = 'SMS-авторизация скоро появится';
     code.placeholder = 'SMS-авторизация не подключена';
   }
 }
 
-document.getElementById('loginForm').addEventListener(
-  'submit', function(event) {
-    event.preventDefault();
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
 
-    const message = document.getElementById('message');
-    const code = document.getElementById('code').value.trim();
+  const message = document.getElementById('message');
+  const code = document.getElementById('code').value.trim();
 
-    if (currentMode === 'real') {
-      message.textContent =
-        'Реальная авторизация пока находится в разработке.';
-      return;
-    }
-
-    if (code !== '1234') {
-      message.textContent =
-        'Неверный код. Для демо-входа используйте 1234.';
-      return;
-    }
-
-    openDashboard();
+  if (currentMode === 'real') {
+    message.textContent = 'Реальная авторизация пока находится в разработке.';
+    return;
   }
-);
+
+  if (code !== '1234') {
+    message.textContent = 'Неверный код. Для демо-входа используйте 1234.';
+    return;
+  }
+
+  openDashboard();
+});
 
 function openDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('dashboardPage').style.display = 'flex';
   document.getElementById('dashboard').style.display = 'block';
+  loadDashboard();
 }
 
 function logout() {
@@ -539,6 +624,7 @@ function logout() {
   document.getElementById('code').value = '';
   document.getElementById('message').textContent = '';
 }
+
 </script>
 
 </body>
