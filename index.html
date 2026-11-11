@@ -43,8 +43,8 @@
 
     .greeting-names {
       margin: 0 auto 30px;
-      font-size: 18px;
-      line-height: 1.7;
+      font-size: clamp(42px, 10vw, 64px);
+      line-height: 1.12;
     }
 
     .greeting-name {
@@ -53,13 +53,6 @@
 
     .greeting-separator {
       white-space: pre;
-    }
-
-    h1 {
-      font-size: clamp(42px, 10vw, 64px);
-      font-weight: normal;
-      line-height: 1.12;
-      margin: 0 0 30px;
     }
 
     .message {
@@ -278,12 +271,6 @@
     </div>
 
     <div class="greeting-names" id="greeting-names"></div>
-
-    <h1>
-      Александр<br>
-      &amp;<br>
-      Мария
-    </h1>
 
     <p class="message">
       Мы будем счастливы разделить с вами
