@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EventFlow — Кабинет организатора</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #f7f5f0;
+  --card: #ffffff;
+  --text: #292820;
+  --muted: #89877f;
+  --accent: #8b8068;
+  --border: #e9e6df;
+  --green: #47785b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+}
+
+button, input { font: inherit; }
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 18px;
+}
+
+.container {
+  width: 100%;
+  max-width: 430px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  letter-spacing: 1px;
+}
+
+.brand-caption {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 7px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(40, 35, 20, .04);
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: 29px;
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg);
+  border-radius: 9px;
+  padding: 4px;
+  margin-bottom: 27px;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: 11px;
+  border-radius: 7px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.tab.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+
+.field { margin-bottom: 18px; }
+
+label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: var(--text);
+  font-size: 15px;
+}
+
+input:focus {
+  border-color: var(--accent);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 7px;
+}
+
+.demo-hint {
+  background: #f5f3ed;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 20px 0;
+}
+
+.demo-hint strong {
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.primary {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  background: #38372f;
+  color: white;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.primary:hover { background: #555246; }
+
+.primary:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.message {
+  min-height: 20px;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 12px;
+  color: #a24b42;
+}
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 25px;
+}
+
+/* Кабинет */
+
+.dashboard {
+  display: none;
+  width: 100%;
+  max-width: 850px;
+}
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+.dash-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+}
+
+.demo-label {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  background: #ece8df;
+  padding: 7px 10px;
+  border-radius: 20px;
+}
+
+.event-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.event-date {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.stat {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.panel h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: 23px;
+  margin: 0 0 20px;
+}
+
+.guest {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-top: 1px solid var(--border);
+  gap: 12px;
+}
+
+.guest-name { font-size: 14px; }
+
+.status {
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.yes {
+  color: #47785b;
+  background: #edf4ee;
+}
+
+.no {
+  color: #a45c50;
+  background: #f8eeee;
+}
+
+.logout {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 9px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dash-note {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+@media (max-width: 550px) {
+  .card { padding: 25px 20px; }
+  .stats { gap: 8px; }
+  .stat { padding: 14px 10px; }
+  .stat-number { font-size: 27px; }
+  .stat-label { font-size: 10px; }
+  .event-title { font-size: 28px; }
+  .panel { padding: 18px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page" id="loginPage">
+  <div class="container">
+
+    <div class="brand">
+      <div class="brand-name">EventFlow</div>
+      <div class="brand-caption">Your event, beautifully organized</div>
+    </div>
+
+    <div class="card">
+      <h1>Кабинет организатора</h1>
+
+      <div class="subtitle">
+        Управляйте мероприятием и следите за ответами гостей.
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" id="demoTab" onclick="setMode('demo')">
+          DEMO
+        </button>
+        <button class="tab" id="realTab" onclick="setMode('real')">
+          REAL
+        </button>
+      </div>
+
+      <form id="loginForm">
+
+        <div class="field">
+          <label for="phone">Номер телефона</label>
+          <input
+            id="phone"
+            type="tel"
+            placeholder="+7 (999) 123-45-67"
+            autocomplete="tel"
+          >
+          <div class="hint" id="phoneHint">
+            Необязательно для демонстрационного входа.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="code">Код подтверждения</label>
+          <input
+            id="code"
+            type="text"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="Введите код"
+            autocomplete="one-time-code"
+          >
+        </div>
+
+        <div class="demo-hint" id="demoHint">
+          ДЕМО-КОД: <strong>1234</strong><br>
+          Введите код, чтобы открыть тестовый кабинет.
+        </div>
+
+        <button class="primary" type="submit" id="loginButton">
+          Войти в кабинет
+        </button>
+
+        <div class="message" id="message"></div>
+
+      </form>
+    </div>
+
+    <div class="footer">
+      EventFlow © 2026 · Пространство вашего мероприятия
+    </div>
+
+  </div>
+</div>
+
+<!-- Демонстрационный кабинет -->
+
+<div class="page" id="dashboardPage" style="display:none">
+
+  <div class="dashboard" id="dashboard">
+
+    <div class="dash-header">
+      <div class="dash-brand">EventFlow</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="demo-label">DEMO MODE</span>
+        <button class="logout" onclick="logout()">Выйти</button>
+      </div>
+    </div>
+
+    <h1 class="event-title">Свадьба Александра и Марии</h1>
+
+    <div class="event-date">
+      12 июня 2027 · 16:00
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-number">3</div>
+        <div class="stat-label">Всего гостей</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-number">2</div>
+        <div class="stat-label">Придут</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-number">1</div>
+        <div class="stat-label">Не придут</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Список гостей</h2>
+
+      <div class="guest">
+        <span class="guest-name">Александр Иванов</span>
+        <span class="status yes">Придёт</span>
+      </div>
+
+      <div class="guest">
+        <span class="guest-name">Мария Иванова</span>
+        <span class="status yes">Придёт</span>
+      </div>
+
+      <div class="guest">
+        <span class="guest-name">Максим Иванов</span>
+        <span class="status yes">Придёт</span>
+      </div>
+
+      <div class="dash-note">
+        Демонстрационные данные. Изменения в этом кабинете
+        не затрагивают реальные мероприятия.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentMode = 'demo';
+
+function setMode(mode) {
+  currentMode = mode;
+
+  document.getElementById('demoTab').classList.toggle(
+    'active', mode === 'demo'
+  );
+
+  document.getElementById('realTab').classList.toggle(
+    'active', mode === 'real'
+  );
+
+  const phoneHint = document.getElementById('phoneHint');
+  const demoHint = document.getElementById('demoHint');
+  const button = document.getElementById('loginButton');
+  const code = document.getElementById('code');
+
+  document.getElementById('message').textContent = '';
+  code.value = '';
+
+  if (mode === 'demo') {
+    phoneHint.textContent =
+      'Необязательно для демонстрационного входа.';
+
+    demoHint.style.display = 'block';
+    button.textContent = 'Войти в кабинет';
+    code.placeholder = 'Введите код';
+  } else {
+    phoneHint.textContent =
+      'Для реального входа потребуется подтверждение телефона по SMS.';
+
+    demoHint.style.display = 'none';
+    button.textContent = 'SMS-авторизация скоро появится';
+    code.placeholder = 'SMS-авторизация не подключена';
+  }
+}
+
+document.getElementById('loginForm').addEventListener(
+  'submit', function(event) {
+    event.preventDefault();
+
+    const message = document.getElementById('message');
+    const code = document.getElementById('code').value.trim();
+
+    if (currentMode === 'real') {
+      message.textContent =
+        'Реальная авторизация пока находится в разработке.';
+      return;
+    }
+
+    if (code !== '1234') {
+      message.textContent =
+        'Неверный код. Для демо-входа используйте 1234.';
+      return;
+    }
+
+    openDashboard();
+  }
+);
+
+function openDashboard() {
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function logout() {
+  document.getElementById('dashboardPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('code').value = '';
+  document.getElementById('message').textContent = '';
+}
+</script>
+
+</body>
+</html>
