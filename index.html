@@ -41,6 +41,20 @@
       margin-bottom: 24px;
     }
 
+    .greeting-names {
+      margin: 0 auto 30px;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .greeting-name {
+      display: inline;
+    }
+
+    .greeting-separator {
+      white-space: pre;
+    }
+
     h1 {
       font-size: clamp(42px, 10vw, 64px);
       font-weight: normal;
@@ -240,6 +254,14 @@
       .date {
         margin-bottom: 76px;
       }
+
+      .greeting-name {
+        display: block;
+      }
+
+      .greeting-separator {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -251,9 +273,11 @@
       12 июня 2027 года
     </div>
 
-    <div class="eyebrow">
+    <div class="eyebrow" id="greeting-heading">
       Дорогие родные и близкие!
     </div>
+
+    <div class="greeting-names" id="greeting-names"></div>
 
     <h1>
       Александр<br>
@@ -361,6 +385,45 @@
       }).format(date);
     }
 
+    // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
+
+    function renderGreeting(group, guests) {
+      const isRespectful = group?.greeting_style === 'respectful';
+      const heading = document.getElementById('greeting-heading');
+      const namesContainer = document.getElementById('greeting-names');
+
+      heading.textContent = isRespectful
+        ? 'Уважаемые'
+        : 'Дорогие родные и близкие!';
+
+      namesContainer.replaceChildren();
+
+      guests.forEach((guest, index) => {
+        const name = document.createElement('span');
+        name.className = 'greeting-name';
+
+        const nameParts = [guest.first_name];
+
+        if (
+          isRespectful &&
+          guest.salutation_type !== 'first_name' &&
+          guest.patronymic
+        ) {
+          nameParts.push(guest.patronymic);
+        }
+
+        name.textContent = nameParts.filter(Boolean).join(' ');
+        namesContainer.appendChild(name);
+
+        if (index < guests.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'greeting-separator';
+          separator.textContent = index === guests.length - 2 ? ' и ' : ', ';
+          namesContainer.appendChild(separator);
+        }
+      });
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -375,10 +438,17 @@
         const guestName = document.createElement('span');
         guestName.className = 'guest-name';
 
-        guestName.textContent =
-          [guest.first_name, guest.last_name]
-            .filter(Boolean)
-            .join(' ');
+        const guestNameParts = [guest.first_name];
+
+        if (guest.salutation_type === 'male') {
+          guestName.textContent = 'Уважаемый ' +
+            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+        } else if (guest.salutation_type === 'female') {
+          guestName.textContent = 'Уважаемая ' +
+            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+        } else {
+          guestName.textContent = guestNameParts.filter(Boolean).join(' ');
+        }
 
         const options = document.createElement('div');
         options.className = 'guest-options';
@@ -492,6 +562,7 @@
 
         invitationGuests = data.guests;
 
+        renderGreeting(data.group, invitationGuests);
         renderGuests(invitationGuests);
 
         status.textContent = '';
