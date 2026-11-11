@@ -418,11 +418,24 @@
 
         // Повторное нажатие на выбранный вариант снимает выбор
         options.querySelectorAll('input[type="radio"]').forEach(input => {
+          let wasChecked = false;
+
+          input.addEventListener('pointerdown', () => {
+            wasChecked = input.checked;
+          });
+
+          input.addEventListener('keydown', keyEvent => {
+            if (keyEvent.code === 'Space') {
+              wasChecked = input.checked;
+            }
+          });
+
           input.addEventListener('click', clickEvent => {
-            if (input.checked) {
+            if (wasChecked) {
               clickEvent.preventDefault();
               input.checked = false;
             }
+            wasChecked = false;
           });
         });
 
