@@ -392,7 +392,7 @@
           continue;
         }
 
-        node.textContent = node.textContent.replace(pattern, '$1$2\\u00A0');
+        node.textContent = node.textContent.replace(pattern, (match, prefix, word) => prefix + word + '\u00A0');
       }
     }
 
