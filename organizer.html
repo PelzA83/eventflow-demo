@@ -354,6 +354,99 @@ input:focus {
   background: #49473e;
   border-color: #49473e;
 }
+
+/* Управление списком гостей */
+.guest-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0 22px;
+}
+.guest-action {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 11px 15px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.guest-action.primary-action {
+  background: #49473e;
+  border-color: #49473e;
+  color: #fff;
+}
+.guest-action:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.guest-form-panel {
+  display: none;
+  margin: 0 0 24px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fcfbf8;
+}
+.guest-form-panel.open { display: block; }
+.guest-form-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 400;
+  margin: 0 0 6px;
+}
+.guest-form-description {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+.guest-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.guest-form-field { min-width: 0; }
+.guest-form-field.full { grid-column: 1 / -1; }
+.guest-form-field label { margin-bottom: 7px; }
+.guest-form-field input,
+.guest-form-field select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.guest-form-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+.guest-form-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.guest-form-message {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+@media (max-width: 550px) {
+  .guest-form-panel { padding: 17px 14px; }
+  .guest-form-grid { grid-template-columns: 1fr; }
+  .guest-form-field.full { grid-column: auto; }
+  .guest-form-footer { flex-direction: column-reverse; }
+  .guest-form-footer button { width: 100%; }
+}
+
 .guest-empty {
   padding: 24px 0;
   color: var(--muted);
@@ -551,6 +644,59 @@ input:focus {
           <button class="filter-btn" type="button" data-filter="pending" onclick="setGuestFilter('pending')">Ожидают</button>
         </div>
       </div>
+
+      <div class="guest-actions">
+        <button class="guest-action primary-action" type="button" onclick="toggleGuestForm(true)">Заполнить список гостей</button>
+        <button class="guest-action" type="button" disabled>Скачать шаблон Excel</button>
+        <button class="guest-action" type="button" disabled>Загрузить список гостей</button>
+      </div>
+
+      <div class="guest-form-panel" id="guestFormPanel">
+        <h3 class="guest-form-title">Новый гость</h3>
+        <p class="guest-form-description">Заполните данные приглашённого. Пока это предварительный макет формы: сохранение в базу подключим следующим этапом.</p>
+        <form id="guestForm">
+          <div class="guest-form-grid">
+            <div class="guest-form-field">
+              <label for="newGuestFirstName">Имя *</label>
+              <input id="newGuestFirstName" name="first_name" required placeholder="Например, Александр">
+            </div>
+            <div class="guest-form-field">
+              <label for="newGuestLastName">Фамилия</label>
+              <input id="newGuestLastName" name="last_name" placeholder="Например, Иванов">
+            </div>
+            <div class="guest-form-field">
+              <label for="newGuestPatronymic">Отчество</label>
+              <input id="newGuestPatronymic" name="patronymic" placeholder="Например, Сергеевич">
+            </div>
+            <div class="guest-form-field">
+              <label for="newGuestGroup">Группа гостей</label>
+              <input id="newGuestGroup" name="group_name" placeholder="Например, Семья Ивановых">
+            </div>
+            <div class="guest-form-field">
+              <label for="newGuestSalutation">Форма обращения</label>
+              <select id="newGuestSalutation" name="salutation_type">
+                <option value="first_name">Только имя</option>
+                <option value="male">Уважаемый (мужской род)</option>
+                <option value="female">Уважаемая (женский род)</option>
+              </select>
+              <div class="guest-form-hint">Вы выбираете форму самостоятельно — EventFlow не определяет её автоматически.</div>
+            </div>
+            <div class="guest-form-field">
+              <label for="newGuestGreetingStyle">Стиль приветствия</label>
+              <select id="newGuestGreetingStyle" name="greeting_style">
+                <option value="informal">Неформальный</option>
+                <option value="respectful">Уважительный</option>
+              </select>
+            </div>
+          </div>
+          <div class="guest-form-footer">
+            <button class="guest-action" type="button" onclick="toggleGuestForm(false)">Отмена</button>
+            <button class="guest-action primary-action" type="submit">Добавить гостя</button>
+          </div>
+          <div class="guest-form-message" id="guestFormMessage" role="status"></div>
+        </form>
+      </div>
+
       <div id="guestList"><div class="guest-name">Загружаем список гостей…</div></div>
 
       <div class="dash-note" id="dashboardNote">
@@ -581,6 +727,23 @@ function setText(id, value) {
 
 let dashboardGuests = [];
 let currentGuestFilter = 'all';
+
+
+function toggleGuestForm(show) {
+  const panel = document.getElementById('guestFormPanel');
+  panel.classList.toggle('open', show);
+  if (show) document.getElementById('newGuestFirstName').focus();
+  else {
+    document.getElementById('guestForm').reset();
+    document.getElementById('guestFormMessage').textContent = '';
+  }
+}
+
+document.getElementById('guestForm').addEventListener('submit', function(event) {
+  event.preventDefault();
+  document.getElementById('guestFormMessage').textContent =
+    'Макет формы готов. Сохранение гостя в Supabase подключим после согласования интерфейса.';
+});
 
 function setGuestFilter(filter) {
   currentGuestFilter = filter;
