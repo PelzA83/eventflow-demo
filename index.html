@@ -372,6 +372,30 @@
       }).format(date);
     }
 
+    // ТИПОГРАФИКА: НЕ ОСТАВЛЯЕМ КОРОТКИЕ СОЮЗЫ И ПРЕДЛОГИ В КОНЦЕ СТРОКИ
+
+    function applyTypography(root) {
+      if (!root) return;
+
+      const shortWords = 'и|а|но|да|в|во|к|ко|с|со|у|о|об|от|до|из|за|на|по|под|над|при|про|без|для|через|между';
+      const pattern = new RegExp(
+        '(^|[^\\p{L}\\p{N}_])(' + shortWords + ')[\\t \\r\\n]+(?=\\S)',
+        'giu'
+      );
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const parent = node.parentElement;
+
+        if (parent && parent.closest('script, style, textarea, input, select, option')) {
+          continue;
+        }
+
+        node.textContent = node.textContent.replace(pattern, '$1$2\\u00A0');
+      }
+    }
+
     // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
 
     function renderGreeting(group, guests) {
@@ -405,7 +429,7 @@
         if (index < guests.length - 1) {
           const separator = document.createElement('span');
           separator.className = 'greeting-separator';
-          separator.textContent = index === guests.length - 2 ? ' и ' : ', ';
+          separator.textContent = index === guests.length - 2 ? '\u00A0и\u00A0' : ', ';
           namesContainer.appendChild(separator);
         }
       });
@@ -551,6 +575,7 @@
 
         renderGreeting(data.group, invitationGuests);
         renderGuests(invitationGuests);
+        applyTypography(document.querySelector('.invitation'));
 
         status.textContent = '';
 
@@ -684,6 +709,7 @@
 
     // ЗАПУСК
 
+    applyTypography(document.querySelector('.invitation'));
     loadInvitation();
 
   </script>
