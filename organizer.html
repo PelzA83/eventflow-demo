@@ -646,7 +646,7 @@ input:focus {
       </div>
 
       <div class="guest-actions">
-        <button class="guest-action primary-action" type="button" onclick="toggleGuestForm(true)">Заполнить список гостей</button>
+        <button class="guest-action primary-action" id="toggleGuestFormButton" type="button" aria-expanded="false" aria-controls="guestFormPanel" onclick="toggleGuestForm()">Заполнить список гостей</button>
         <button class="guest-action" type="button" disabled>Скачать шаблон Excel</button>
         <button class="guest-action" type="button" disabled>Загрузить список гостей</button>
       </div>
@@ -656,17 +656,10 @@ input:focus {
         <p class="guest-form-description">Заполните данные приглашённого. Пока это предварительный макет формы: сохранение в базу подключим следующим этапом.</p>
         <form id="guestForm">
           <div class="guest-form-grid">
-            <div class="guest-form-field">
-              <label for="newGuestFirstName">Имя *</label>
-              <input id="newGuestFirstName" name="first_name" required placeholder="Например, Александр">
-            </div>
-            <div class="guest-form-field">
-              <label for="newGuestLastName">Фамилия</label>
-              <input id="newGuestLastName" name="last_name" placeholder="Например, Иванов">
-            </div>
-            <div class="guest-form-field">
-              <label for="newGuestPatronymic">Отчество</label>
-              <input id="newGuestPatronymic" name="patronymic" placeholder="Например, Сергеевич">
+            <div class="guest-form-field full">
+              <label for="newGuestFullName">Фамилия, имя и отчество *</label>
+              <input id="newGuestFullName" name="full_name" required autocomplete="name" placeholder="Например, Иванов Александр Сергеевич">
+              <div class="guest-form-hint">Введите ФИО одной строкой. При сохранении EventFlow разделит его на отдельные поля.</div>
             </div>
             <div class="guest-form-field">
               <label for="newGuestGroup">Группа гостей</label>
@@ -731,8 +724,15 @@ let currentGuestFilter = 'all';
 
 function toggleGuestForm(show) {
   const panel = document.getElementById('guestFormPanel');
-  panel.classList.toggle('open', show);
-  if (show) document.getElementById('newGuestFirstName').focus();
+  const toggleButton = document.getElementById('toggleGuestFormButton');
+  const shouldShow = typeof show === 'boolean'
+    ? show
+    : !panel.classList.contains('open');
+
+  panel.classList.toggle('open', shouldShow);
+  toggleButton.setAttribute('aria-expanded', String(shouldShow));
+
+  if (shouldShow) document.getElementById('newGuestFullName').focus();
   else {
     document.getElementById('guestForm').reset();
     document.getElementById('guestFormMessage').textContent = '';
