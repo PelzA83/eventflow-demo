@@ -141,20 +141,16 @@
     .guest-option {
       flex: 1;
       min-width: 115px;
-      position: relative;
     }
 
-    .guest-option input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .guest-option span {
+    .guest-choice {
       display: block;
+      width: 100%;
       padding: 12px 10px;
       border: 1px solid #d8d3c8;
       border-radius: 3px;
+      background: transparent;
+      color: #292820;
       text-align: center;
       font-family: Arial, sans-serif;
       font-size: 13px;
@@ -162,13 +158,13 @@
       transition: 0.2s;
     }
 
-    .guest-option input:checked + span {
+    .guest-choice.is-selected {
       background: #292820;
       border-color: #292820;
       color: #fff;
     }
 
-    .guest-option input:focus-visible + span {
+    .guest-choice:focus-visible {
       outline: 2px solid #817c6e;
       outline-offset: 3px;
     }
@@ -395,47 +391,31 @@
         const noChecked = currentStatus === 'declined';
 
         options.innerHTML = `
-          <label class="guest-option">
-            <input
-              type="radio"
-              name="${radioName}"
-              value="yes"
-              ${yesChecked ? 'checked' : ''}
-            >
-            <span>Приду</span>
-          </label>
+          <div class="guest-option">
+            <button type="button" class="guest-choice ${yesChecked ? 'is-selected' : ''}"
+              data-value="yes" aria-pressed="${yesChecked}">Приду</button>
+          </div>
 
-          <label class="guest-option">
-            <input
-              type="radio"
-              name="${radioName}"
-              value="no"
-              ${noChecked ? 'checked' : ''}
-            >
-            <span>Не смогу</span>
-          </label>
+          <div class="guest-option">
+            <button type="button" class="guest-choice ${noChecked ? 'is-selected' : ''}"
+              data-value="no" aria-pressed="${noChecked}">Не смогу</button>
+          </div>
         `;
 
-        // Повторное нажатие на выбранный вариант снимает выбор
-        options.querySelectorAll('input[type="radio"]').forEach(input => {
-          let wasChecked = false;
+        // Кнопки работают как переключатели: повторное нажатие снимает выбор.
+        options.querySelectorAll('.guest-choice').forEach(choice => {
+          choice.addEventListener('click', () => {
+            const wasSelected = choice.classList.contains('is-selected');
 
-          input.addEventListener('pointerdown', () => {
-            wasChecked = input.checked;
-          });
+            options.querySelectorAll('.guest-choice').forEach(button => {
+              button.classList.remove('is-selected');
+              button.setAttribute('aria-pressed', 'false');
+            });
 
-          input.addEventListener('keydown', keyEvent => {
-            if (keyEvent.code === 'Space') {
-              wasChecked = input.checked;
+            if (!wasSelected) {
+              choice.classList.add('is-selected');
+              choice.setAttribute('aria-pressed', 'true');
             }
-          });
-
-          input.addEventListener('click', clickEvent => {
-            if (wasChecked) {
-              clickEvent.preventDefault();
-              input.checked = false;
-            }
-            wasChecked = false;
           });
         });
 
@@ -545,9 +525,8 @@
       for (let i = 0; i < invitationGuests.length; i++) {
         const guest = invitationGuests[i];
 
-        const selected = document.querySelector(
-          'input[name="guest-' + i + '"]:checked'
-        );
+        const guestItem = document.querySelectorAll('.guest-item')[i];
+        const selected = guestItem?.querySelector('.guest-choice.is-selected');
 
         const initialAttendance =
           guest.rsvp_status === 'confirmed' ? 'yes' :
@@ -602,9 +581,8 @@
         // Обновляем исходные статусы в памяти, чтобы следующие изменения
         // сравнивались с последними успешно сохранёнными ответами.
         invitationGuests.forEach((guest, index) => {
-          const selected = document.querySelector(
-            'input[name="guest-' + index + '"]:checked'
-          );
+          const guestItem = document.querySelectorAll('.guest-item')[index];
+          const selected = guestItem?.querySelector('.guest-choice.is-selected');
           guest.rsvp_status = selected
             ? (selected.value === 'yes' ? 'confirmed' : 'declined')
             : 'pending';
