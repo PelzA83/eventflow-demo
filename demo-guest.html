@@ -862,15 +862,17 @@
           status: 'confirmed'
         }));
 
-      if (confirmedGuests.length === 0) {
-        status.textContent = 'QR-код появится после подтверждения участия хотя бы одного гостя.';
-        section.hidden = false;
+      // QR показываем только если блок включён организатором
+      // и есть хотя бы один гость с подтверждённым участием.
+      if (block.is_visible === false || confirmedGuests.length === 0) {
+        section.hidden = true;
         return;
       }
 
+      section.hidden = false;
+
       if (typeof QRCode === 'undefined') {
         status.textContent = 'Не удалось загрузить генератор QR-кодов. Проверьте подключение к интернету.';
-        section.hidden = false;
         return;
       }
 
