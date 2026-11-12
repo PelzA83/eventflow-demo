@@ -797,11 +797,21 @@
 
     function renderDressCode(content = {}, settings = {}) {
       const block = document.getElementById('block-dress-code');
+      const isConfiguredVisible = !block.hidden;
       const title = document.getElementById('dress-code-title');
       const contentContainer = document.getElementById('dress-code-content');
       const image = document.getElementById('dress-code-image');
       const description = document.getElementById('dress-code-description');
       const itemsContainer = document.getElementById('dress-code-items');
+
+      const updateBlockVisibility = () => {
+        const hasContent = Boolean(
+          description.textContent.trim() ||
+          itemsContainer.children.length ||
+          !image.hidden
+        );
+        block.hidden = !isConfiguredVisible || !hasContent;
+      };
 
       const alignment = ['left', 'center', 'right'].includes(settings.alignment)
         ? settings.alignment
@@ -854,6 +864,7 @@
       image.onerror = () => {
         image.hidden = true;
         image.removeAttribute('src');
+        updateBlockVisibility();
       };
 
       if (settings.show_image !== false && imageUrl) {
@@ -878,6 +889,8 @@
       if (layout !== 'stacked') {
         contentContainer.classList.add('layout-' + layout);
       }
+
+      updateBlockVisibility();
     }
 
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
