@@ -219,7 +219,7 @@
     function openDemoWindow(role) {
       try {
         const id = ensureSessionAnchor();
-        const target = new URL("demo.html", location.href);
+        const target = new URL(role === "guest" ? "demo-guest.html" : "demo-organizer.html", location.href);
         target.searchParams.set("view", role);
         target.searchParams.set("context", id);
         const opened = window.open(target.toString(), "_blank");
