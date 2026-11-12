@@ -202,6 +202,48 @@
       display: none;
     }
 
+    .qr-code-section {
+      margin-top: 42px;
+      padding: 28px 18px;
+      border-top: 1px solid #d8d3c8;
+      text-align: center;
+    }
+    .qr-code-section h2 {
+      margin: 0 0 12px;
+      font-family: Georgia, serif;
+      font-size: 25px;
+      font-weight: normal;
+    }
+    .qr-code-description {
+      max-width: 360px;
+      margin: 0 auto 20px;
+      color: #817c6e;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .qr-code-image {
+      display: flex;
+      justify-content: center;
+      min-height: 220px;
+      margin: 0 auto 14px;
+    }
+    .qr-code-image img,
+    .qr-code-image canvas {
+      display: block;
+      width: 220px;
+      height: 220px;
+      padding: 8px;
+      background: #fff;
+    }
+    .qr-code-status {
+      margin: 0;
+      color: #817c6e;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
     @media (max-width: 480px) {
       .dress-code-content.layout-image-left,
       .dress-code-content.layout-image-right {
@@ -631,6 +673,15 @@
       </section>
     </section>
 
+    <section class="event-block" id="block-qr-code" data-block-key="qr_code" hidden>
+      <section class="qr-code-section">
+        <h2 id="qr-code-title">QR-код приглашения</h2>
+        <p class="qr-code-description" id="qr-code-description">Покажите этот код организаторам на мероприятии</p>
+        <div class="qr-code-image" id="qr-code-image" aria-label="QR-код приглашения"></div>
+        <p class="qr-code-status" id="qr-code-status" aria-live="polite"></p>
+      </section>
+    </section>
+
     <!-- RSVP -->
 
     <div class="event-block" id="block-rsvp" data-block-key="rsvp">
@@ -670,6 +721,7 @@
 
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     // ВРЕМЕННАЯ ИЗОЛИРОВАННАЯ ДЕМОСЕССИЯ
 
@@ -774,6 +826,7 @@
         getBlock('seating').content?.data || {},
         getBlock('seating').settings?.data || {}
       );
+      renderQrCode(state, getBlock('qr_code'));
 
       renderGuests(invitationGuests);
 
@@ -784,6 +837,73 @@
 
       document.getElementById('connection-status').textContent = '';
       applyTypography(document.querySelector('.invitation'));
+    }
+
+    // ДЕМОНСТРАЦИОННЫЙ QR: ДАННЫЕ ФОРМИРУЮТСЯ ЛОКАЛЬНО В БРАУЗЕРЕ
+
+    function renderQrCode(state, block) {
+      const section = document.getElementById('block-qr-code');
+      const container = document.getElementById('qr-code-image');
+      const status = document.getElementById('qr-code-status');
+      const title = document.getElementById('qr-code-title');
+      const description = document.getElementById('qr-code-description');
+      const content = block.content?.data || {};
+
+      title.textContent = content.title || 'QR-код приглашения';
+      description.textContent = content.description || 'Покажите этот код организаторам на мероприятии';
+      container.replaceChildren();
+      status.textContent = '';
+
+      const confirmedGuests = (state.guests || [])
+        .filter(guest => guest.rsvp_status === 'confirmed')
+        .map(guest => ({
+          id: guest.id,
+          name: [guest.first_name, guest.last_name].filter(Boolean).join(' '),
+          status: 'confirmed'
+        }));
+
+      if (confirmedGuests.length === 0) {
+        status.textContent = 'QR-код появится после подтверждения участия хотя бы одного гостя.';
+        section.hidden = false;
+        return;
+      }
+
+      if (typeof QRCode === 'undefined') {
+        status.textContent = 'Не удалось загрузить генератор QR-кодов. Проверьте подключение к интернету.';
+        section.hidden = false;
+        return;
+      }
+
+      const payload = {
+        version: 1,
+        type: 'eventflow_invitation_demo',
+        event: {
+          id: state.event?.id || '',
+          title: state.event?.title || '',
+          date: state.event?.event_date || state.event?.date || '',
+          time: state.event?.event_time || ''
+        },
+        invitation_id: state.group?.id || '',
+        group_id: state.group?.id || '',
+        guests: confirmedGuests,
+        generated_at: state.updatedAt || new Date().toISOString(),
+        revision: Number(state.revision) || 0
+      };
+
+      try {
+        new QRCode(container, {
+          text: JSON.stringify(payload),
+          width: 220,
+          height: 220,
+          colorDark: '#292820',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+        status.textContent = 'Демонстрационный код. Данные не подписаны и не предназначены для проверки подлинности.';
+      } catch (error) {
+        status.textContent = 'Не удалось сформировать QR-код.';
+        console.error('EventFlow demo QR error:', error);
+      }
     }
 
     function disconnectDemoSession() {
