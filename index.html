@@ -124,6 +124,22 @@
       font-style: italic;
     }
 
+    .signature-subtitle {
+      margin-top: 8px;
+      font-size: 24px;
+      font-style: italic;
+    }
+
+    .signature.text-style-normal,
+    .signature-subtitle.text-style-normal {
+      font-style: normal;
+    }
+
+    .signature.text-style-large,
+    .signature-subtitle.text-style-large {
+      font-size: 28px;
+    }
+
     .connection-status {
       margin-top: 30px;
       font-family: Arial, sans-serif;
@@ -315,10 +331,8 @@
     </div>
 
     <div class="event-block" id="block-couple-signature" data-block-key="couple_signature">
-      <div class="signature">
-        С любовью,<br>
-        Александр и Мария
-      </div>
+      <div class="signature" id="couple-signature-text">С любовью,</div>
+      <div class="signature-subtitle" id="couple-signature-subtitle">Александр и Мария</div>
     </div>
 
     <div class="scroll-hint" id="scroll-hint">
@@ -563,6 +577,39 @@
       });
     }
 
+    // ОТОБРАЖЕНИЕ ПОДПИСИ
+
+    function renderCoupleSignature(content = {}, settings = {}) {
+      const block = document.getElementById('block-couple-signature');
+      const text = document.getElementById('couple-signature-text');
+      const subtitle = document.getElementById('couple-signature-subtitle');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      text.textContent = typeof content.text === 'string' && content.text.trim()
+        ? content.text.trim()
+        : 'С любовью,';
+
+      subtitle.textContent = typeof content.subtitle === 'string'
+        ? content.subtitle.trim()
+        : 'Александр и Мария';
+      subtitle.hidden = settings.show_subtitle === false || !subtitle.textContent;
+
+      const textStyle = ['normal', 'italic', 'large'].includes(settings.text_style)
+        ? settings.text_style
+        : 'italic';
+
+      [text, subtitle].forEach(element => {
+        element.classList.remove('text-style-normal', 'text-style-large');
+        if (textStyle !== 'italic') {
+          element.classList.add('text-style-' + textStyle);
+        }
+      });
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -771,6 +818,14 @@
         renderInvitationText(
           invitationTextBlock?.content?.data || {},
           invitationTextBlock?.settings?.data || {}
+        );
+
+        const signatureBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'couple_signature')
+          : null;
+        renderCoupleSignature(
+          signatureBlock?.content?.data || {},
+          signatureBlock?.settings?.data || {}
         );
 
         renderGuests(invitationGuests);
