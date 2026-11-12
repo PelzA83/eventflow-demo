@@ -41,6 +41,13 @@
       margin-bottom: 24px;
     }
 
+    .greeting-extra {
+      max-width: 440px;
+      margin: 0 auto 22px;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
     .greeting-names {
       margin: 0 auto 30px;
       font-size: clamp(42px, 10vw, 64px);
@@ -271,7 +278,9 @@
         Дорогие родные и близкие!
       </div>
 
+      <div class="greeting-extra" id="greeting-intro" hidden></div>
       <div class="greeting-names" id="greeting-names"></div>
+      <div class="greeting-extra" id="greeting-additional" hidden></div>
     </div>
 
     <div class="event-block" id="block-invitation-text" data-block-key="invitation_text">
@@ -408,24 +417,63 @@
 
     // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
 
-    function renderGreeting(group, guests) {
+    function renderGreeting(group, guests, content = {}, settings = {}) {
       const isRespectful = group?.greeting_style === 'respectful';
       const heading = document.getElementById('greeting-heading');
+      const date = document.getElementById('event-date');
       const namesContainer = document.getElementById('greeting-names');
+      const intro = document.getElementById('greeting-intro');
+      const additional = document.getElementById('greeting-additional');
 
       heading.textContent = isRespectful
         ? 'Уважаемые'
         : 'Дорогие родные и близкие!';
 
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      document.getElementById('block-greeting').style.textAlign = alignment;
+      date.hidden = settings.show_event_date === false;
+
+      intro.textContent = typeof content.intro_text === 'string'
+        ? content.intro_text
+        : '';
+      intro.hidden = !intro.textContent.trim();
+
+      additional.textContent = typeof content.additional_text === 'string'
+        ? content.additional_text
+        : '';
+      additional.hidden = !additional.textContent.trim();
+
       namesContainer.replaceChildren();
 
-      guests.forEach((guest, index) => {
+      const personalization = ['real', 'examples', 'none'].includes(settings.personalization)
+        ? settings.personalization
+        : 'real';
+
+      if (personalization === 'none') {
+        namesContainer.hidden = true;
+        return;
+      }
+
+      namesContainer.hidden = false;
+
+      const names = personalization === 'examples'
+        ? [
+            { first_name: 'Александр' },
+            { first_name: 'Мария' },
+            { first_name: 'Максим' }
+          ]
+        : guests;
+
+      names.forEach((guest, index) => {
         const name = document.createElement('span');
         name.className = 'greeting-name';
 
         const nameParts = [guest.first_name];
 
         if (
+          personalization === 'real' &&
           isRespectful &&
           ['male', 'female'].includes(guest.salutation_type) &&
           guest.patronymic
@@ -436,10 +484,10 @@
         name.textContent = nameParts.filter(Boolean).join(' ');
         namesContainer.appendChild(name);
 
-        if (index < guests.length - 1) {
+        if (index < names.length - 1) {
           const separator = document.createElement('span');
           separator.className = 'greeting-separator';
-          separator.textContent = index === guests.length - 2 ? '\u00A0и\u00A0' : ', ';
+          separator.textContent = index === names.length - 2 ? '\u00A0и\u00A0' : ', ';
           namesContainer.appendChild(separator);
         }
       });
@@ -634,7 +682,18 @@
 
         invitationGuests = data.guests;
 
-        renderGreeting(data.group, invitationGuests);
+        const greetingBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'greeting')
+          : null;
+        const greetingContent = greetingBlock?.content?.data || {};
+        const greetingSettings = greetingBlock?.settings?.data || {};
+
+        renderGreeting(
+          data.group,
+          invitationGuests,
+          greetingContent,
+          greetingSettings
+        );
         renderGuests(invitationGuests);
         applyTypography(document.querySelector('.invitation'));
 
