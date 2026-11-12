@@ -113,9 +113,37 @@
       margin-bottom: 24px;
     }
 
-    .details p {
+    .event-info-items {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .event-info-item {
+      display: flex;
+      flex-direction: column;
       font-size: 17px;
       line-height: 1.7;
+    }
+
+    .event-info-items.layout-compact {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px 32px;
+    }
+
+    .event-info-items.layout-compact .event-info-item {
+      min-width: 180px;
+    }
+
+    .event-info-label {
+      opacity: 0.8;
+    }
+
+    .event-info-label[hidden],
+    .event-info-title[hidden] {
+      display: none;
     }
 
     .signature {
@@ -340,18 +368,19 @@
     </div>
 
     <section class="event-block" id="block-event-info" data-block-key="event_info">
-      <section class="details">
-        <h2>Будем рады вас видеть</h2>
-
-        <p>
-          <span id="details-date">12 июня 2027 года</span><br>
-          Начало в <span id="event-time">16:00</span>
-        </p>
-
-        <p>
-          Место проведения<br>
-          <span id="event-venue">Информация появится позже</span>
-        </p>
+      <section class="details" id="event-info-content">
+        <h2 id="event-info-title">Будем рады вас видеть</h2>
+        <div class="event-info-items" id="event-info-items">
+          <div class="event-info-item">
+            <span class="event-info-value" id="details-date">12 июня 2027 года</span>
+            <span class="event-info-label">Начало в</span>
+            <span class="event-info-value" id="event-time">16:00</span>
+          </div>
+          <div class="event-info-item">
+            <span class="event-info-label">Место проведения</span>
+            <span class="event-info-value" id="event-venue">Информация появится позже</span>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -610,6 +639,76 @@
       });
     }
 
+    // ОТОБРАЖЕНИЕ ИНФОРМАЦИИ О МЕРОПРИЯТИИ
+
+    function renderEventInfo(event, content = {}, settings = {}) {
+      const block = document.getElementById('block-event-info');
+      const title = document.getElementById('event-info-title');
+      const itemsContainer = document.getElementById('event-info-items');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string' && content.title.trim()
+        ? content.title.trim()
+        : 'Будем рады вас видеть';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false;
+
+      const eventValues = {
+        date: event.date ? formatDate(event.date) : '',
+        time: event.time ? String(event.time).slice(0, 5) : '',
+        venue: event.venue_name || '',
+        address: event.venue_address || event.address || ''
+      };
+
+      const defaultItems = [
+        { type: 'date', label: 'Дата' },
+        { type: 'time', label: 'Начало в' },
+        { type: 'venue', label: 'Место проведения' },
+        { type: 'address', label: 'Адрес' }
+      ];
+
+      // items задаёт порядок и подписи, а значения всегда берутся из event.
+      const configuredItems = Array.isArray(content.items)
+        ? content.items.filter(item =>
+            item && ['date', 'time', 'venue', 'address'].includes(item.type)
+          )
+        : [];
+      const items = configuredItems.length ? configuredItems : defaultItems;
+
+      itemsContainer.replaceChildren();
+      itemsContainer.classList.toggle('layout-compact', settings.layout === 'compact');
+
+      items.forEach(item => {
+        const value = eventValues[item.type];
+        if (!value) return;
+
+        const itemElement = document.createElement('div');
+        itemElement.className = 'event-info-item';
+
+        const labelText = typeof item.label === 'string' && item.label.trim()
+          ? item.label.trim()
+          : defaultItems.find(defaultItem => defaultItem.type === item.type).label;
+
+        if (settings.show_labels !== false && labelText) {
+          const label = document.createElement('span');
+          label.className = 'event-info-label';
+          label.textContent = labelText;
+          itemElement.appendChild(label);
+        }
+
+        const valueElement = document.createElement('span');
+        valueElement.className = 'event-info-value';
+        valueElement.textContent = value;
+        itemElement.appendChild(valueElement);
+
+        itemsContainer.appendChild(itemElement);
+      });
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -768,27 +867,11 @@
         // Настройки видимости и порядка блоков приходят из event_blocks.
         applyBlockConfiguration(data.blocks);
 
-        // ДАТА
+        // ДАТА В ШАПКЕ ПРИГЛАШЕНИЯ
 
         if (event.date) {
-          const date = formatDate(event.date);
-
-          document.getElementById('event-date').textContent = date;
-          document.getElementById('details-date').textContent = date;
-        }
-
-        // ВРЕМЯ
-
-        if (event.time) {
-          document.getElementById('event-time').textContent =
-            String(event.time).slice(0, 5);
-        }
-
-        // МЕСТО
-
-        if (event.venue_name) {
-          document.getElementById('event-venue').textContent =
-            event.venue_name;
+          document.getElementById('event-date').textContent =
+            formatDate(event.date);
         }
 
         // ГОСТИ
@@ -826,6 +909,15 @@
         renderCoupleSignature(
           signatureBlock?.content?.data || {},
           signatureBlock?.settings?.data || {}
+        );
+
+        const eventInfoBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'event_info')
+          : null;
+        renderEventInfo(
+          event,
+          eventInfoBlock?.content?.data || {},
+          eventInfoBlock?.settings?.data || {}
         );
 
         renderGuests(invitationGuests);
