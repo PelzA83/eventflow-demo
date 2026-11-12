@@ -27,77 +27,78 @@ function createInitialState() {
     updatedAt: now,
 
     // Служебное поле сохраняет работоспособность текущей тестовой страницы.
-    note: "Демо-сессия создана. Измените этот текст в любом из двух окон.",
+    note: "Новогодняя демосессия создана.",
 
     event: {
       id: "demo-event",
-      title: "Свадьба Александра и Марии",
-      date: "2027-06-12",
-      event_date: "2027-06-12",
-      event_time: "16:00:00",
-      timezone: "Europe/Moscow",
+      title: "Новогодний вечер",
+      date: "",
+      event_date: "",
+      event_time: "",
+      timezone: "",
       venue_name: "",
       venue_address: "",
-      rsvp_deadline: "2027-05-29",
+      rsvp_deadline: "",
       status: "active"
     },
 
     group: {
       id: "demo-group",
-      name: "Семья Ивановых",
+      name: "Гости новогоднего вечера",
       greeting_style: "informal"
     },
 
-    guests: [
-      {
-        id: "demo-guest-alexander",
-        first_name: "Александр",
-        last_name: "Иванов",
-        patronymic: "Иванович",
-        salutation_type: "male",
-        role: "guest",
-        group_name: "Семья Ивановых",
-        rsvp_status: "pending",
-        attendance: null,
-        comment: "",
-        responded_at: null
-      },
-      {
-        id: "demo-guest-maria",
-        first_name: "Мария",
-        last_name: "Иванова",
-        patronymic: "Петровна",
-        salutation_type: "female",
-        role: "guest",
-        group_name: "Семья Ивановых",
-        rsvp_status: "pending",
-        attendance: null,
-        comment: "",
-        responded_at: null
-      },
-      {
-        id: "demo-guest-maxim",
-        first_name: "Максим",
-        last_name: "Иванов",
-        patronymic: "",
-        salutation_type: "none",
-        role: "guest",
-        group_name: "Семья Ивановых",
-        rsvp_status: "pending",
-        attendance: null,
-        comment: "",
-        responded_at: null
-      }
-    ],
+    guests: [],
 
-    blocks: BLOCK_KEYS.map((block_key, index) => ({
-      id: "demo-block-" + block_key,
-      block_key,
-      is_visible: !["dress_code", "menu", "seating"].includes(block_key),
-      sort_order: index + 1,
-      content: { schema_version: 1, data: {} },
-      settings: { schema_version: 1, data: {} }
-    })),
+    blocks: BLOCK_KEYS.map((block_key, index) => {
+      const contentByBlock = {
+        greeting: {},
+        invitation_text: {
+          title: "Приглашаем на новогодний вечер",
+          paragraphs: [
+            "Будем рады встретить Новый год вместе с вами!",
+            "Сохраните этот вечер для тёплой встречи, праздничного настроения и добрых пожеланий."
+          ]
+        },
+        event_info: {
+          title: "Когда и где встречаемся",
+          items: [
+            { type: "date", label: "" },
+            { type: "time", label: "Начало в" },
+            { type: "venue", label: "Место проведения" },
+            { type: "address", label: "Адрес" }
+          ]
+        },
+        couple_signature: {},
+        dress_code: {},
+        menu: {},
+        rsvp: {},
+        seating: {},
+        qr_code: {}
+      };
+
+      const isVisible = ["greeting", "invitation_text", "event_info", "rsvp"]
+        .includes(block_key);
+
+      const settingsByBlock = block_key === "greeting"
+        ? { personalization: "none" }
+        : {};
+
+      return {
+        id: "demo-block-" + block_key,
+        block_key,
+        is_visible: isVisible,
+        sort_order: index + 1,
+        content: {
+          schema_version: 1,
+          data: contentByBlock[block_key] || {}
+        },
+        settings: {
+          schema_version: 1,
+          data: settingsByBlock
+        }
+      };
+    }),
 
     rsvp: {
       comment: ""
