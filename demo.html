@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>EventFlow — изолированная демосессия</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #282923;
+      --muted: #77786f;
+      --line: #e8e6df;
+      --paper: #fff;
+      --canvas: #f7f6f2;
+      --accent: #5c715f;
+      --accent-dark: #435647;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 32px 18px;
+      display: grid;
+      place-items: center;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .shell { width: min(100%, 560px); }
+    .brand {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .brand-name {
+      font-family: Georgia, serif;
+      font-size: 34px;
+      letter-spacing: -.8px;
+    }
+    .brand-caption {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .panel {
+      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: 0 16px 48px rgba(39, 39, 30, .06);
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-family: Georgia, serif;
+      font-size: clamp(27px, 6vw, 35px);
+      font-weight: 400;
+      line-height: 1.15;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    button {
+      min-height: 52px;
+      padding: 13px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 9px;
+      background: var(--accent);
+      color: white;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .18s ease, transform .18s ease;
+    }
+    button:hover { background: var(--accent-dark); }
+    button:active { transform: translateY(1px); }
+    button.secondary {
+      background: white;
+      color: var(--accent-dark);
+    }
+    button.secondary:hover { background: #f3f5f1; }
+    .notice {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .session {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 11px;
+      overflow-wrap: anywhere;
+    }
+    .field-label {
+      display: block;
+      margin: 24px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    textarea:focus {
+      outline: 2px solid rgba(92, 113, 95, .2);
+      border-color: var(--accent);
+    }
+    .save { width: 100%; margin-top: 12px; }
+    .status {
+      margin-top: 14px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .back {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--accent-dark);
+      font-size: 12px;
+      text-decoration: none;
+    }
+    .back:hover { text-decoration: underline; }
+    .hidden { display: none; }
+    @media (max-width: 480px) {
+      body { padding: 18px 12px; }
+      .panel { padding: 25px 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="brand-name">EventFlow</div>
+      <div class="brand-caption">Your event, beautifully organized</div>
+    </header>
+
+    <section class="panel" id="startView">
+      <h1>Демонстрация EventFlow</h1>
+      <p>Откройте приглашение и панель организатора в отдельных окнах. Они будут работать с общими временными данными этой демосессии.</p>
+
+      <div class="actions">
+        <button type="button" id="openGuest">Открыть приглашение</button>
+        <button type="button" class="secondary" id="openOrganizer">Открыть панель управления</button>
+      </div>
+
+      <div class="session" id="sessionInfo">Демосессия будет создана при первом нажатии.</div>
+      <p class="notice">Технический тест изоляции. Изменения хранятся только в оперативной памяти браузера и не записываются в Supabase.</p>
+    </section>
+
+    <section class="panel hidden" id="testView">
+      <h1 id="viewTitle">Тестовая страница</h1>
+      <p id="viewDescription">Проверка обмена данными между окнами одной демосессии.</p>
+
+      <label class="field-label" for="sharedNote">Общее тестовое сообщение</label>
+      <textarea id="sharedNote" maxlength="500" placeholder="Введите текст для второго окна"></textarea>
+      <button type="button" class="save" id="saveNote">Передать изменение во второе окно</button>
+      <div class="status" id="connectionStatus" role="status">Подключаемся к временной сессии…</div>
+      <div class="session" id="childSessionInfo"></div>
+      <a class="back" href="demo.html">← Вернуться на стартовую страницу</a>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const view = params.get("view");
+    const contextIdFromUrl = params.get("context");
+    let contextId = null;
+    let anchorPort = null;
+    let clientPort = null;
+
+    function makeContextId() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    function createWorkerPort() {
+      if (!("SharedWorker" in window)) {
+        throw new Error("Этот браузер не поддерживает SharedWorker. Откройте демо в актуальной версии Chrome, Edge, Firefox или Safari.");
+      }
+      const worker = new SharedWorker("./demo-worker.js", { name: "eventflow-demo-v1" });
+      worker.port.start();
+      return worker.port;
+    }
+
+    function ensureSessionAnchor() {
+      if (contextId) return contextId;
+
+      contextId = makeContextId();
+      anchorPort = createWorkerPort();
+      anchorPort.postMessage({ type: "init", contextId });
+      document.getElementById("sessionInfo").textContent =
+        "Создана временная сессия: " + contextId;
+      return contextId;
+    }
+
+    function openDemoWindow(role) {
+      try {
+        const id = ensureSessionAnchor();
+        const target = new URL("demo.html", location.href);
+        target.searchParams.set("view", role);
+        target.searchParams.set("context", id);
+        const opened = window.open(target.toString(), "_blank");
+        if (!opened) {
+          document.getElementById("sessionInfo").textContent =
+            "Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и повторите нажатие.";
+        }
+      } catch (error) {
+        document.getElementById("sessionInfo").textContent = error.message;
+      }
+    }
+
+    document.getElementById("openGuest").addEventListener("click", () => openDemoWindow("guest"));
+    document.getElementById("openOrganizer").addEventListener("click", () => openDemoWindow("organizer"));
+
+    function showTestView() {
+      document.getElementById("startView").classList.add("hidden");
+      document.getElementById("testView").classList.remove("hidden");
+
+      const isGuest = view === "guest";
+      document.getElementById("viewTitle").textContent =
+        isGuest ? "Тестовое приглашение" : "Тестовая панель организатора";
+      document.getElementById("viewDescription").textContent = isGuest
+        ? "Это гостевое окно тестовой демосессии. Измените сообщение и проверьте его в панели организатора."
+        : "Это окно организатора тестовой демосессии. Измените сообщение и проверьте его в гостевом окне.";
+
+      if (!contextIdFromUrl) {
+        document.getElementById("connectionStatus").textContent =
+          "Не найден идентификатор демосессии. Вернитесь на стартовую страницу.";
+        document.getElementById("saveNote").disabled = true;
+        return;
+      }
+
+      contextId = contextIdFromUrl;
+      document.getElementById("childSessionInfo").textContent =
+        "ID демосессии: " + contextId;
+
+      try {
+        clientPort = createWorkerPort();
+        clientPort.onmessage = event => {
+          const message = event.data || {};
+          if (message.type === "state" && message.contextId === contextId) {
+            const note = document.getElementById("sharedNote");
+            if (note.value !== message.state.note) note.value = message.state.note;
+            document.getElementById("connectionStatus").textContent =
+              "Синхронизировано · версия " + message.state.revision +
+              " · " + new Date(message.state.updatedAt).toLocaleTimeString("ru-RU");
+          } else if (message.type === "error") {
+            document.getElementById("connectionStatus").textContent = message.message;
+          }
+        };
+        clientPort.postMessage({ type: "init", contextId });
+      } catch (error) {
+        document.getElementById("connectionStatus").textContent = error.message;
+        document.getElementById("saveNote").disabled = true;
+      }
+
+      document.getElementById("saveNote").addEventListener("click", () => {
+        if (clientPort) {
+          clientPort.postMessage({
+            type: "set-note",
+            note: document.getElementById("sharedNote").value
+          });
+        }
+      });
+    }
+
+    if (view === "guest" || view === "organizer") showTestView();
+
+    window.addEventListener("pagehide", () => {
+      if (anchorPort) anchorPort.postMessage({ type: "disconnect" });
+      if (clientPort) clientPort.postMessage({ type: "disconnect" });
+    });
+  </script>
+</body>
+</html>
