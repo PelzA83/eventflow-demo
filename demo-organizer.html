@@ -1312,7 +1312,7 @@ function connectDemoSession() {
   }
 
   try {
-    const worker = new SharedWorker('./demo-worker.js?v=4', { name: 'eventflow-demo-v4' });
+    const worker = new SharedWorker('./demo-worker.js?v=5', { name: 'eventflow-demo-v5' });
     demoPort = worker.port;
 
     demoPort.onmessage = event => {
@@ -1369,8 +1369,33 @@ document.getElementById('eventForm').addEventListener('submit', event => {
 
 document.getElementById('guestForm').addEventListener('submit', event => {
   event.preventDefault();
-  document.getElementById('guestFormMessage').textContent =
-    'Добавление и редактирование гостей будет подключено следующим этапом.';
+
+  const message = document.getElementById('guestFormMessage');
+  if (!demoPort || !demoState) {
+    message.textContent = 'Нет подключения к демосессии. Обновите страницу.';
+    return;
+  }
+
+  const fullName = document.getElementById('newGuestFullName').value.trim();
+  const nameParts = fullName.split(/\\s+/).filter(Boolean);
+  if (nameParts.length < 2) {
+    message.textContent = 'Укажите фамилию и имя гостя.';
+    return;
+  }
+
+  const fields = {
+    last_name: nameParts[0],
+    first_name: nameParts[1],
+    patronymic: nameParts.slice(2).join(' '),
+    group_name: document.getElementById('newGuestGroup').value.trim(),
+    salutation_type: document.getElementById('newGuestSalutation').value,
+    greeting_style: document.getElementById('newGuestGreetingStyle').value
+  };
+
+  demoPort.postMessage({ type: 'add-guest', fields });
+  message.textContent = 'Гость добавлен в список демосессии.';
+  document.getElementById('guestForm').reset();
+  toggleGuestForm(false);
 });
 
 document.querySelectorAll('[data-section]').forEach(button => {
