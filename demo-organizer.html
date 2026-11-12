@@ -1377,7 +1377,7 @@ document.getElementById('guestForm').addEventListener('submit', event => {
   }
 
   const fullName = document.getElementById('newGuestFullName').value.trim();
-  const nameParts = fullName.split(/\\s+/).filter(Boolean);
+  const nameParts = fullName.split(/\s+/).filter(Boolean);
   if (nameParts.length < 2) {
     message.textContent = 'Укажите фамилию и имя гостя.';
     return;
