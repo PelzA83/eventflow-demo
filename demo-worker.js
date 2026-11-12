@@ -57,8 +57,8 @@ function createInitialState() {
         salutation_type: "male",
         role: "guest",
         group_name: "Семья Ивановых",
-        rsvp_status: "declined",
-        attendance: "no",
+        rsvp_status: "pending",
+        attendance: null,
         comment: "",
         responded_at: null
       },
@@ -70,8 +70,8 @@ function createInitialState() {
         salutation_type: "female",
         role: "guest",
         group_name: "Семья Ивановых",
-        rsvp_status: "confirmed",
-        attendance: "yes",
+        rsvp_status: "pending",
+        attendance: null,
         comment: "",
         responded_at: null
       },
