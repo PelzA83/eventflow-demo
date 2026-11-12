@@ -93,7 +93,7 @@ function createInitialState() {
     blocks: BLOCK_KEYS.map((block_key, index) => ({
       id: "demo-block-" + block_key,
       block_key,
-      is_visible: !["dress_code", "menu", "seating", "qr_code"].includes(block_key),
+      is_visible: !["dress_code", "menu", "seating"].includes(block_key),
       sort_order: index + 1,
       content: { schema_version: 1, data: {} },
       settings: { schema_version: 1, data: {} }
