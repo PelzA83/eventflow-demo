@@ -727,6 +727,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const contextId = params.get('context');
+    const guestId = params.get('guest');
     let demoPort = null;
     let demoState = null;
     let invitationGuests = [];
@@ -745,7 +746,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=6', { name: 'eventflow-demo-v6' });
+        const worker = new SharedWorker('./demo-worker.js?v=7', { name: 'eventflow-demo-v7' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
@@ -787,7 +788,22 @@
         document.getElementById('event-date').textContent = formatDate(event.date);
       }
 
-      invitationGuests = state.guests.map(guest => ({ ...guest }));
+      if (guestId) {
+        const selectedGuest = state.guests.find(guest => guest.id === guestId);
+        if (!selectedGuest) {
+          document.getElementById('connection-status').textContent =
+            'Это персональное приглашение не найдено. Попросите организатора отправить актуальную ссылку.';
+          document.getElementById('rsvp-section').style.display = 'none';
+          return;
+        }
+        invitationGuests = [{ ...selectedGuest }];
+      } else {
+        invitationGuests = state.guests.map(guest => ({ ...guest }));
+      }
+
+      const greetingGroup = invitationGuests.length === 1 && guestId
+        ? { ...group, greeting_style: invitationGuests[0].greeting_style || group.greeting_style }
+        : group;
 
       const getBlock = key => blocks.find(block => block.block_key === key) || {};
       const renderBlock = (key, renderer, ...args) => {
@@ -796,7 +812,7 @@
       };
 
       renderGreeting(
-        group,
+        greetingGroup,
         invitationGuests,
         getBlock('greeting').content?.data || {},
         getBlock('greeting').settings?.data || {}
@@ -826,7 +842,7 @@
         getBlock('seating').content?.data || {},
         getBlock('seating').settings?.data || {}
       );
-      renderQrCode(state, getBlock('qr_code'));
+      renderQrCode(guestId ? { ...state, guests: invitationGuests } : state, getBlock('qr_code'));
 
       renderGuests(invitationGuests);
 
@@ -951,16 +967,18 @@
     // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
 
     function renderGreeting(group, guests, content = {}, settings = {}) {
-      const isRespectful = group?.greeting_style === 'respectful';
+      const isIndividualInvitation = Boolean(guestId && guests.length === 1);
+      const individualGuest = isIndividualInvitation ? guests[0] : null;
+      const isRespectful = (individualGuest?.greeting_style || group?.greeting_style) === 'respectful';
       const heading = document.getElementById('greeting-heading');
       const date = document.getElementById('event-date');
       const namesContainer = document.getElementById('greeting-names');
       const intro = document.getElementById('greeting-intro');
       const additional = document.getElementById('greeting-additional');
 
-      heading.textContent = isRespectful
-        ? 'Уважаемые'
-        : 'Дорогие родные и близкие!';
+      heading.textContent = isIndividualInvitation && isRespectful
+        ? individualGuest.salutation_type === 'female' ? 'Уважаемая' : 'Уважаемый'
+        : isRespectful ? 'Уважаемые' : 'Дорогие родные и близкие!';
 
       const alignment = ['left', 'center', 'right'].includes(settings.alignment)
         ? settings.alignment
@@ -1518,17 +1536,10 @@
         const guestName = document.createElement('span');
         guestName.className = 'guest-name';
 
-        const guestNameParts = [guest.first_name];
-
-        if (guest.salutation_type === 'male') {
-          guestName.textContent = 'Уважаемый ' +
-            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
-        } else if (guest.salutation_type === 'female') {
-          guestName.textContent = 'Уважаемая ' +
-            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
-        } else {
-          guestName.textContent = guestNameParts.filter(Boolean).join(' ');
-        }
+        guestName.textContent = [
+          guest.first_name,
+          guest.greeting_style === 'respectful' ? guest.patronymic : ''
+        ].filter(Boolean).join(' ');
 
         const options = document.createElement('div');
         options.className = 'guest-options';
