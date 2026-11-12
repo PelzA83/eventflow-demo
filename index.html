@@ -271,6 +271,94 @@
       }
     }
 
+    .seating-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .seating-content.layout-image-left,
+    .seating-content.layout-image-right {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .seating-content.layout-image-right {
+      flex-direction: row-reverse;
+    }
+
+    .seating-image {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .seating-content.layout-image-left .seating-image,
+    .seating-content.layout-image-right .seating-image {
+      width: 46%;
+      flex: 0 0 46%;
+    }
+
+    .seating-text {
+      min-width: 0;
+      flex: 1;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .seating-description {
+      margin: 0 0 20px;
+      white-space: pre-line;
+    }
+
+    .seating-items {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .seating-item-title {
+      margin: 0 0 6px;
+      font-size: 19px;
+      font-weight: normal;
+    }
+
+    .seating-item-guests {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    .seating-items[hidden],
+    .seating-description[hidden],
+    .seating-image[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .seating-content.layout-image-left,
+      .seating-content.layout-image-right {
+        flex-direction: column;
+        align-items: center;
+        text-align: inherit;
+      }
+
+      .seating-content.layout-image-left .seating-image,
+      .seating-content.layout-image-right .seating-image {
+        width: 100%;
+        max-width: 320px;
+      }
+    }
+
     .signature {
       margin-top: 90px;
       font-size: 24px;
@@ -527,6 +615,19 @@
         <h2 id="menu-title" hidden></h2>
         <p class="menu-description" id="menu-description" hidden></p>
         <div class="menu-sections" id="menu-sections" hidden></div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-seating" data-block-key="seating" hidden>
+      <section class="details seating">
+        <h2 id="seating-title" hidden></h2>
+        <div class="seating-content" id="seating-content">
+          <img class="seating-image" id="seating-image" alt="" hidden>
+          <div class="seating-text">
+            <p class="seating-description" id="seating-description" hidden></p>
+            <ul class="seating-items" id="seating-items" hidden></ul>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -1056,6 +1157,133 @@
       title.hidden = title.hidden || !hasContent;
     }
 
+    // ОТОБРАЖЕНИЕ СХЕМЫ РАССАДКИ
+
+    function renderSeating(content = {}, settings = {}) {
+      const block = document.getElementById('block-seating');
+      const isConfiguredVisible = !block.hidden;
+      const title = document.getElementById('seating-title');
+      const contentContainer = document.getElementById('seating-content');
+      const image = document.getElementById('seating-image');
+      const description = document.getElementById('seating-description');
+      const itemsContainer = document.getElementById('seating-items');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      description.textContent = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.hidden = !description.textContent;
+
+      const items = Array.isArray(content.items) ? content.items : [];
+      itemsContainer.replaceChildren();
+
+      items.forEach(item => {
+        if (typeof item === 'string' && item.trim()) {
+          const listItem = document.createElement('li');
+          listItem.textContent = item.trim();
+          itemsContainer.appendChild(listItem);
+          return;
+        }
+
+        if (!item || typeof item !== 'object') return;
+
+        const itemTitle = [item.title, item.name, item.label]
+          .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+        const rawGuests = Array.isArray(item.guests)
+          ? item.guests
+          : Array.isArray(item.items)
+            ? item.items
+            : [];
+        const guests = rawGuests
+          .filter(guest => typeof guest === 'string' && guest.trim())
+          .map(guest => guest.trim());
+
+        if (!itemTitle && guests.length === 0) return;
+
+        const listItem = document.createElement('li');
+
+        if (itemTitle) {
+          const heading = document.createElement('h3');
+          heading.className = 'seating-item-title';
+          heading.textContent = itemTitle;
+          listItem.appendChild(heading);
+        }
+
+        if (guests.length) {
+          const guestList = document.createElement('ul');
+          guestList.className = 'seating-item-guests';
+          guests.forEach(guest => {
+            const guestElement = document.createElement('li');
+            guestElement.textContent = guest;
+            guestList.appendChild(guestElement);
+          });
+          listItem.appendChild(guestList);
+        }
+
+        itemsContainer.appendChild(listItem);
+      });
+
+      itemsContainer.hidden = itemsContainer.children.length === 0;
+
+      const imageValue = typeof content.image === 'string'
+        ? content.image
+        : content.image && typeof content.image === 'object'
+          ? content.image.url || content.image.src || ''
+          : '';
+      const imageUrl = typeof imageValue === 'string' ? imageValue.trim() : '';
+
+      image.hidden = true;
+      image.removeAttribute('src');
+      image.alt = typeof content.image?.alt === 'string'
+        ? content.image.alt
+        : 'Схема рассадки гостей';
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+      };
+
+      if (settings.show_image !== false && imageUrl) {
+        try {
+          const parsedUrl = new URL(imageUrl, window.location.href);
+          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+            image.src = parsedUrl.href;
+            image.hidden = false;
+          }
+        } catch (error) {
+          console.warn('EventFlow: некорректная ссылка схемы рассадки');
+        }
+      }
+
+      const layout = ['image-left', 'image-right'].includes(settings.layout)
+        ? settings.layout
+        : 'stacked';
+      contentContainer.classList.remove(
+        'layout-image-left',
+        'layout-image-right'
+      );
+      if (layout !== 'stacked') {
+        contentContainer.classList.add('layout-' + layout);
+      }
+
+      const hasContent = Boolean(
+        description.textContent.trim() ||
+        itemsContainer.children.length ||
+        !image.hidden
+      );
+      block.hidden = !isConfiguredVisible || !hasContent;
+      title.hidden = title.hidden || !hasContent;
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -1281,6 +1509,14 @@
         renderMenu(
           menuBlock?.content?.data || {},
           menuBlock?.settings?.data || {}
+        );
+
+        const seatingBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'seating')
+          : null;
+        renderSeating(
+          seatingBlock?.content?.data || {},
+          seatingBlock?.settings?.data || {}
         );
 
         renderGuests(invitationGuests);
