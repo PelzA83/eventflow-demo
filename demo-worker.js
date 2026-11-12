@@ -188,6 +188,37 @@ function updateBlock(session, blockKey, patch) {
   return true;
 }
 
+function addGuest(session, fields) {
+  if (!isPlainObject(fields)) return false;
+
+  const firstName = String(fields.first_name || "").trim();
+  const lastName = String(fields.last_name || "").trim();
+  const patronymic = String(fields.patronymic || "").trim();
+  if (!firstName) return false;
+
+  const guestId = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : "guest-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+
+  session.state.guests.push({
+    id: guestId,
+    first_name: firstName,
+    last_name: lastName,
+    patronymic,
+    salutation_type: ["male", "female"].includes(fields.salutation_type)
+      ? fields.salutation_type
+      : "first_name",
+    greeting_style: fields.greeting_style === "respectful" ? "respectful" : "informal",
+    role: "guest",
+    group_name: String(fields.group_name || session.state.group.name || "").trim(),
+    attendance: null,
+    rsvp_status: "pending",
+    responded_at: null
+  });
+
+  return true;
+}
+
 function updateGuest(session, guestId, patch) {
   if (!isPlainObject(patch)) return false;
 
@@ -254,6 +285,9 @@ function applyMessage(session, message) {
 
     case "update-block":
       return updateBlock(session, String(message.blockKey || ""), message.patch);
+
+    case "add-guest":
+      return addGuest(session, message.fields);
 
     case "update-guest":
       return updateGuest(session, String(message.guestId || ""), message.patch);
