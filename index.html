@@ -62,11 +62,33 @@
       white-space: normal;
     }
 
+    .message-title {
+      margin: 0 auto 24px;
+      font-size: 28px;
+      font-weight: normal;
+    }
+
     .message {
       max-width: 380px;
       margin: 0 auto;
       font-size: 19px;
       line-height: 1.7;
+    }
+
+    .message p {
+      margin: 0 0 1em;
+    }
+
+    .message p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message.text-style-large {
+      font-size: 22px;
+    }
+
+    .message.text-style-italic {
+      font-style: italic;
     }
 
     .scroll-hint {
@@ -284,11 +306,12 @@
     </div>
 
     <div class="event-block" id="block-invitation-text" data-block-key="invitation_text">
-      <p class="message">
-        Мы будем счастливы разделить с вами
-        один из самых важных дней нашей жизни.
-        Приглашаем вас на нашу свадьбу!
-      </p>
+      <h2 class="message-title" id="invitation-title" hidden></h2>
+      <div class="message" id="invitation-paragraphs">
+        <p>Мы будем счастливы разделить с вами
+          один из самых важных дней нашей жизни.
+          Приглашаем вас на нашу свадьбу!</p>
+      </div>
     </div>
 
     <div class="event-block" id="block-couple-signature" data-block-key="couple_signature">
@@ -493,6 +516,53 @@
       });
     }
 
+    // ОТОБРАЖЕНИЕ ТЕКСТА ПРИГЛАШЕНИЯ
+
+    function renderInvitationText(content = {}, settings = {}) {
+      const block = document.getElementById('block-invitation-text');
+      const title = document.getElementById('invitation-title');
+      const paragraphsContainer = document.getElementById('invitation-paragraphs');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = !titleText || settings.show_title === false;
+
+      const paragraphs = Array.isArray(content.paragraphs)
+        ? content.paragraphs.filter(paragraph =>
+            typeof paragraph === 'string' && paragraph.trim()
+          )
+        : [];
+
+      paragraphsContainer.replaceChildren();
+
+      const textStyle = ['large', 'italic'].includes(settings.text_style)
+        ? settings.text_style
+        : 'normal';
+      paragraphsContainer.classList.remove('text-style-large', 'text-style-italic');
+      if (textStyle !== 'normal') {
+        paragraphsContainer.classList.add('text-style-' + textStyle);
+      }
+
+      const displayedParagraphs = paragraphs.length
+        ? paragraphs
+        : [
+            'Мы будем счастливы разделить с вами один из самых важных дней нашей жизни. Приглашаем вас на нашу свадьбу!'
+          ];
+
+      displayedParagraphs.forEach(paragraph => {
+        const element = document.createElement('p');
+        element.textContent = paragraph.trim();
+        paragraphsContainer.appendChild(element);
+      });
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -694,6 +764,15 @@
           greetingContent,
           greetingSettings
         );
+
+        const invitationTextBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'invitation_text')
+          : null;
+        renderInvitationText(
+          invitationTextBlock?.content?.data || {},
+          invitationTextBlock?.settings?.data || {}
+        );
+
         renderGuests(invitationGuests);
         applyTypography(document.querySelector('.invitation'));
 
