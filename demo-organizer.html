@@ -508,6 +508,18 @@ input:focus {
   border-top: 1px solid #efede8;
   line-height: 1.7;
 }
+
+.dash-note-comment {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+
+.dash-note-caption {
+  display: block;
+  font-size: 11px;
+}
 @media (max-width: 700px) {
   .dashboard { padding-top: 0; }
   .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -756,9 +768,22 @@ function renderDashboard(state) {
 
   const note = document.getElementById('dashboardNote');
   const comment = state.rsvp?.comment || '';
-  note.textContent = comment
-    ? 'Комментарий к ответу группы: ' + comment + ' · Данные хранятся только в памяти этой демосессии.'
+  note.replaceChildren();
+
+  if (comment) {
+    const commentText = document.createElement('div');
+    commentText.className = 'dash-note-comment';
+    commentText.textContent = 'Комментарий к ответу группы: ' + comment;
+    note.appendChild(commentText);
+  }
+
+  const caption = document.createElement('div');
+  caption.className = 'dash-note-caption';
+  caption.textContent = comment
+    ? 'Данные хранятся только в памяти этой демосессии.'
     : 'Данные хранятся только в памяти этой демосессии. Ответы гостей обновляются автоматически.';
+  note.appendChild(caption);
+
   setDashboardMessage('');
 }
 
