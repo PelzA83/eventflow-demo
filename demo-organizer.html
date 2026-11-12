@@ -1062,7 +1062,18 @@ function renderGuests(guests) {
     const details = document.createElement('div');
     const name = document.createElement('div');
     name.className = 'guest-name';
-    name.textContent = guest.first_name || 'Без имени';
+
+    const nameParts = [guest.first_name, guest.patronymic].filter(Boolean);
+    const guestName = nameParts.join(' ') || 'Без имени';
+    const salutation = guest.greeting_style === 'respectful'
+      ? guest.salutation_type === 'male'
+        ? 'Уважаемый'
+        : guest.salutation_type === 'female'
+          ? 'Уважаемая'
+          : ''
+      : '';
+
+    name.textContent = [salutation, guestName].filter(Boolean).join(' ');
     details.appendChild(name);
 
     if (guest.group_name || demoState?.group?.name) {
