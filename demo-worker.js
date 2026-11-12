@@ -81,7 +81,7 @@ function createInitialState() {
         .includes(block_key);
 
       const settingsByBlock = block_key === "greeting"
-        ? { personalization: "none" }
+        ? { personalization: "real" }
         : {};
 
       return {
