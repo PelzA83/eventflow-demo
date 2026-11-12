@@ -891,9 +891,9 @@ input:focus {
             <div class="guest-form-field">
               <label for="newGuestSalutation">Форма обращения</label>
               <select id="newGuestSalutation" name="salutation_type">
-                <option value="first_name">Только имя</option>
                 <option value="male">Уважаемый (мужской род)</option>
                 <option value="female">Уважаемая (женский род)</option>
+                <option value="first_name">Только имя</option>
               </select>
               <div class="guest-form-hint">Вы выбираете форму самостоятельно — EventFlow не определяет её автоматически.</div>
             </div>
@@ -1386,6 +1386,18 @@ function connectDemoSession() {
   }
 }
 
+function updateSalutationAvailability() {
+  const style = document.getElementById('newGuestGreetingStyle').value;
+  const salutation = document.getElementById('newGuestSalutation');
+  const firstNameOption = salutation.querySelector('option[value="first_name"]');
+  const informal = style === 'informal';
+
+  firstNameOption.disabled = !informal;
+  if (!informal && salutation.value === 'first_name') {
+    salutation.value = 'male';
+  }
+}
+
 function toggleGuestForm(show) {
   const panel = document.getElementById('guestFormPanel');
   const toggleButton = document.getElementById('toggleGuestFormButton');
@@ -1402,6 +1414,12 @@ function toggleGuestForm(show) {
     document.getElementById('guestFormMessage').textContent = '';
   }
 }
+
+document.getElementById('newGuestGreetingStyle').addEventListener('change', updateSalutationAvailability);
+document.getElementById('guestForm').addEventListener('reset', () => {
+  window.setTimeout(updateSalutationAvailability, 0);
+});
+updateSalutationAvailability();
 
 document.getElementById('eventForm').addEventListener('submit', event => {
   event.preventDefault();
