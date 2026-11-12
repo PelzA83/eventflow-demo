@@ -1,0 +1,1604 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f5f0">
+  <title>EventFlow — демоприглашение</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f7f5f0;
+      color: #292820;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .invitation {
+      width: 100%;
+      max-width: 560px;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 64px 28px 80px;
+      text-align: center;
+    }
+
+    .date {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 90px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #817c6e;
+      margin-bottom: 24px;
+    }
+
+    .greeting-extra {
+      max-width: 440px;
+      margin: 0 auto 22px;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .greeting-names {
+      margin: 0 auto 30px;
+      font-size: clamp(42px, 10vw, 64px);
+      line-height: 1.12;
+    }
+
+    .greeting-name {
+      display: inline;
+    }
+
+    .greeting-separator {
+      white-space: normal;
+    }
+
+    .message-title {
+      margin: 0 auto 24px;
+      font-size: 28px;
+      font-weight: normal;
+    }
+
+    .message {
+      max-width: 380px;
+      margin: 0 auto;
+      font-size: 19px;
+      line-height: 1.7;
+    }
+
+    .message p {
+      margin: 0 0 1em;
+    }
+
+    .message p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message.text-style-large {
+      font-size: 22px;
+    }
+
+    .message.text-style-italic {
+      font-style: italic;
+    }
+
+    .scroll-hint {
+      margin-top: 100px;
+      color: #817c6e;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .details {
+      margin-top: 100px;
+      padding-top: 50px;
+      border-top: 1px solid #dedbd2;
+    }
+
+    .details h2,
+    .rsvp h2 {
+      font-size: 28px;
+      font-weight: normal;
+      margin-bottom: 24px;
+    }
+
+    .event-info-items {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .event-info-item {
+      display: flex;
+      flex-direction: column;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .event-info-items.layout-compact {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px 32px;
+    }
+
+    .event-info-items.layout-compact .event-info-item {
+      min-width: 180px;
+    }
+
+    .event-info-label {
+      opacity: 0.8;
+    }
+
+    .event-info-label[hidden],
+    .event-info-title[hidden] {
+      display: none;
+    }
+
+    .dress-code-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .dress-code-content.layout-image-left,
+    .dress-code-content.layout-image-right {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .dress-code-content.layout-image-right {
+      flex-direction: row-reverse;
+    }
+
+    .dress-code-image {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .dress-code-content.layout-image-left .dress-code-image,
+    .dress-code-content.layout-image-right .dress-code-image {
+      width: 42%;
+      flex: 0 0 42%;
+    }
+
+    .dress-code-text {
+      min-width: 0;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .dress-code-description {
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .dress-code-items {
+      margin: 18px 0 0;
+      padding-left: 22px;
+      text-align: left;
+    }
+
+    .dress-code-items[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .dress-code-content.layout-image-left,
+      .dress-code-content.layout-image-right {
+        flex-direction: column;
+        align-items: center;
+        text-align: inherit;
+      }
+
+      .dress-code-content.layout-image-left .dress-code-image,
+      .dress-code-content.layout-image-right .dress-code-image {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+
+    .menu-description {
+      margin: 0 0 24px;
+      white-space: pre-line;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .menu-sections {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      text-align: inherit;
+    }
+
+    .menu-sections.layout-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .menu-section-title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: normal;
+    }
+
+    .menu-section-items {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .menu-section-items li {
+      margin: 0 0 10px;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .menu-section-item-description {
+      display: block;
+      margin-top: 3px;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    .menu-sections[hidden],
+    .menu-description[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .menu-sections.layout-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .seating-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .seating-content.layout-image-left,
+    .seating-content.layout-image-right {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .seating-content.layout-image-right {
+      flex-direction: row-reverse;
+    }
+
+    .seating-image {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+
+    .seating-content.layout-image-left .seating-image,
+    .seating-content.layout-image-right .seating-image {
+      width: 46%;
+      flex: 0 0 46%;
+    }
+
+    .seating-text {
+      min-width: 0;
+      flex: 1;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .seating-description {
+      margin: 0 0 20px;
+      white-space: pre-line;
+    }
+
+    .seating-items {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .seating-item-title {
+      margin: 0 0 6px;
+      font-size: 19px;
+      font-weight: normal;
+    }
+
+    .seating-item-guests {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    .seating-items[hidden],
+    .seating-description[hidden],
+    .seating-image[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .seating-content.layout-image-left,
+      .seating-content.layout-image-right {
+        flex-direction: column;
+        align-items: center;
+        text-align: inherit;
+      }
+
+      .seating-content.layout-image-left .seating-image,
+      .seating-content.layout-image-right .seating-image {
+        width: 100%;
+        max-width: 320px;
+      }
+    }
+
+    .signature {
+      margin-top: 90px;
+      font-size: 24px;
+      font-style: italic;
+    }
+
+    .signature-subtitle {
+      margin-top: 8px;
+      font-size: 24px;
+      font-style: italic;
+    }
+
+    .signature.text-style-normal,
+    .signature-subtitle.text-style-normal {
+      font-style: normal;
+    }
+
+    .signature.text-style-large,
+    .signature-subtitle.text-style-large {
+      font-size: 28px;
+    }
+
+    .connection-status {
+      margin-top: 30px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: #817c6e;
+    }
+
+    .connection-status:empty {
+      display: none;
+    }
+
+    /* RSVP */
+
+    .rsvp {
+      display: none;
+      margin-top: 70px;
+      padding-top: 45px;
+      border-top: 1px solid #dedbd2;
+      text-align: left;
+    }
+
+    .rsvp h2 {
+      text-align: center;
+    }
+
+    .rsvp-intro {
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #6f6a5f;
+      margin-bottom: 32px;
+    }
+
+    .guest-item {
+      padding: 20px 0;
+      border-bottom: 1px solid #e3dfd6;
+    }
+
+    .guest-name {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+
+    .guest-options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .guest-option {
+      flex: 1;
+      min-width: 115px;
+    }
+
+    .guest-choice {
+      display: block;
+      width: 100%;
+      padding: 12px 10px;
+      border: 1px solid #d8d3c8;
+      border-radius: 3px;
+      background: transparent;
+      color: #292820;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .guest-choice.is-selected {
+      background: #292820;
+      border-color: #292820;
+      color: #fff;
+    }
+
+    .guest-choice:focus-visible {
+      outline: 2px solid #817c6e;
+      outline-offset: 3px;
+    }
+
+    .comment-label {
+      display: block;
+      margin: 30px 0 12px;
+      font-size: 17px;
+    }
+
+    .comment-field {
+      display: block;
+      width: 100%;
+      min-height: 100px;
+      padding: 14px;
+      border: 1px solid #d8d3c8;
+      border-radius: 3px;
+      background: #fffefa;
+      color: #292820;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .submit-button {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      border: none;
+      border-radius: 3px;
+      background: #292820;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .submit-button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .rsvp-status {
+      margin-top: 18px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #817c6e;
+    }
+
+    .rsvp-status:empty {
+      display: none;
+    }
+
+    .rsvp-status.success {
+      color: #42664b;
+    }
+
+    .rsvp-status.error {
+      color: #a04438;
+    }
+
+    @media (max-width: 480px) {
+      .invitation {
+        padding: 48px 24px 64px;
+      }
+
+      .date {
+        margin-bottom: 76px;
+      }
+
+      .greeting-name {
+        display: block;
+      }
+
+      .greeting-separator {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="invitation">
+
+    <div class="event-block" id="block-greeting" data-block-key="greeting">
+      <div class="date" id="event-date">
+        12 июня 2027 года
+      </div>
+
+      <div class="eyebrow" id="greeting-heading">
+        Дорогие родные и близкие!
+      </div>
+
+      <div class="greeting-extra" id="greeting-intro" hidden></div>
+      <div class="greeting-names" id="greeting-names"></div>
+      <div class="greeting-extra" id="greeting-additional" hidden></div>
+    </div>
+
+    <div class="event-block" id="block-invitation-text" data-block-key="invitation_text">
+      <h2 class="message-title" id="invitation-title" hidden></h2>
+      <div class="message" id="invitation-paragraphs">
+        <p>Мы будем счастливы разделить с вами
+          один из самых важных дней нашей жизни.
+          Приглашаем вас на нашу свадьбу!</p>
+      </div>
+    </div>
+
+    <div class="event-block" id="block-couple-signature" data-block-key="couple_signature">
+      <div class="signature" id="couple-signature-text">С любовью,</div>
+      <div class="signature-subtitle" id="couple-signature-subtitle">Александр и Мария</div>
+    </div>
+
+    <div class="scroll-hint" id="scroll-hint">
+      Прокрутите вниз
+    </div>
+
+    <section class="event-block" id="block-event-info" data-block-key="event_info">
+      <section class="details" id="event-info-content">
+        <h2 id="event-info-title">Будем рады вас видеть</h2>
+        <div class="event-info-items" id="event-info-items">
+          <div class="event-info-item">
+            <span class="event-info-value" id="details-date">12 июня 2027 года</span>
+            <span class="event-info-label">Начало в</span>
+            <span class="event-info-value" id="event-time">16:00</span>
+          </div>
+          <div class="event-info-item">
+            <span class="event-info-label">Место проведения</span>
+            <span class="event-info-value" id="event-venue">Информация появится позже</span>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-dress-code" data-block-key="dress_code">
+      <section class="details dress-code">
+        <h2 id="dress-code-title" hidden>Дресс-код</h2>
+        <div class="dress-code-content" id="dress-code-content">
+          <img class="dress-code-image" id="dress-code-image" alt="" hidden>
+          <div class="dress-code-text">
+            <p class="dress-code-description" id="dress-code-description"></p>
+            <ul class="dress-code-items" id="dress-code-items" hidden></ul>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-menu" data-block-key="menu" hidden>
+      <section class="details menu">
+        <h2 id="menu-title" hidden></h2>
+        <p class="menu-description" id="menu-description" hidden></p>
+        <div class="menu-sections" id="menu-sections" hidden></div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-seating" data-block-key="seating" hidden>
+      <section class="details seating">
+        <h2 id="seating-title" hidden></h2>
+        <div class="seating-content" id="seating-content">
+          <img class="seating-image" id="seating-image" alt="" hidden>
+          <div class="seating-text">
+            <p class="seating-description" id="seating-description" hidden></p>
+            <ul class="seating-items" id="seating-items" hidden></ul>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- RSVP -->
+
+    <div class="event-block" id="block-rsvp" data-block-key="rsvp">
+    <section class="rsvp" id="rsvp-section">
+      <h2>Подтвердите присутствие</h2>
+
+      <p class="rsvp-intro">
+        Пожалуйста, укажите, кто сможет разделить
+        с нами этот особенный день.
+      </p>
+
+      <form id="rsvp-form">
+
+        <div id="guest-list"></div>
+
+        <label class="comment-label" for="rsvp-comment">
+          Комментарий
+        </label>
+
+        <textarea
+          class="comment-field"
+          id="rsvp-comment"
+          placeholder="Если хотите что-то нам сообщить..."
+        ></textarea>
+
+        <button class="submit-button" id="submit-button" type="submit">
+          Отправить ответ
+        </button>
+
+        <div class="rsvp-status" id="rsvp-status" aria-live="polite"></div>
+
+      </form>
+    </section>
+    </div>
+
+    <div class="connection-status" id="connection-status"></div>
+
+  </main>
+
+  <script>
+    // ВРЕМЕННАЯ ИЗОЛИРОВАННАЯ ДЕМОСЕССИЯ
+
+    const params = new URLSearchParams(window.location.search);
+    const contextId = params.get('context');
+    let demoPort = null;
+    let demoState = null;
+    let invitationGuests = [];
+
+    function connectDemoSession() {
+      const status = document.getElementById('connection-status');
+
+      if (!contextId || !/^[a-f0-9-]{16,64}$/i.test(contextId)) {
+        status.textContent = 'Не найден идентификатор демосессии. Вернитесь на стартовую страницу.';
+        return;
+      }
+
+      if (!('SharedWorker' in window)) {
+        status.textContent = 'Этот браузер не поддерживает SharedWorker.';
+        return;
+      }
+
+      try {
+        const worker = new SharedWorker('./demo-worker.js', { name: 'eventflow-demo-v1' });
+        demoPort = worker.port;
+
+        demoPort.onmessage = event => {
+          const message = event.data || {};
+
+          if (message.type === 'error') {
+            status.textContent = message.message;
+            return;
+          }
+
+          if (message.type === 'state' && message.contextId === contextId) {
+            renderDemoState(message.state);
+          }
+        };
+
+        demoPort.start();
+        demoPort.postMessage({ type: 'init', contextId });
+      } catch (error) {
+        status.textContent = 'Не удалось подключиться к временной демосессии.';
+        console.error('EventFlow demo connection error:', error);
+      }
+    }
+
+    function renderDemoState(state) {
+      if (!state || !state.event || !Array.isArray(state.guests)) return;
+
+      demoState = state;
+      const event = {
+        ...state.event,
+        date: state.event.date || state.event.event_date,
+        time: state.event.time || state.event.event_time
+      };
+      const blocks = Array.isArray(state.blocks) ? state.blocks : [];
+      const group = state.group || {};
+
+      applyBlockConfiguration(blocks);
+
+      if (event.date) {
+        document.getElementById('event-date').textContent = formatDate(event.date);
+      }
+
+      invitationGuests = state.guests.map(guest => ({ ...guest }));
+
+      const getBlock = key => blocks.find(block => block.block_key === key) || {};
+      const renderBlock = (key, renderer, ...args) => {
+        const block = getBlock(key);
+        renderer(...args, block.content?.data || {}, block.settings?.data || {});
+      };
+
+      renderGreeting(
+        group,
+        invitationGuests,
+        getBlock('greeting').content?.data || {},
+        getBlock('greeting').settings?.data || {}
+      );
+      renderInvitationText(
+        getBlock('invitation_text').content?.data || {},
+        getBlock('invitation_text').settings?.data || {}
+      );
+      renderCoupleSignature(
+        getBlock('couple_signature').content?.data || {},
+        getBlock('couple_signature').settings?.data || {}
+      );
+      renderEventInfo(
+        event,
+        getBlock('event_info').content?.data || {},
+        getBlock('event_info').settings?.data || {}
+      );
+      renderDressCode(
+        getBlock('dress_code').content?.data || {},
+        getBlock('dress_code').settings?.data || {}
+      );
+      renderMenu(
+        getBlock('menu').content?.data || {},
+        getBlock('menu').settings?.data || {}
+      );
+      renderSeating(
+        getBlock('seating').content?.data || {},
+        getBlock('seating').settings?.data || {}
+      );
+
+      renderGuests(invitationGuests);
+
+      const commentField = document.getElementById('rsvp-comment');
+      if (document.activeElement !== commentField) {
+        commentField.value = state.rsvp?.comment || '';
+      }
+
+      document.getElementById('connection-status').textContent = '';
+      applyTypography(document.querySelector('.invitation'));
+    }
+
+    function disconnectDemoSession() {
+      if (demoPort) {
+        demoPort.postMessage({ type: 'disconnect' });
+        demoPort = null;
+      }
+    }
+
+
+    // ФОРМАТИРОВАНИЕ ДАТЫ
+
+    function formatDate(dateString) {
+      if (!dateString) return null;
+
+      const date = new Date(dateString + 'T12:00:00');
+
+      return new Intl.DateTimeFormat('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(date);
+    }
+
+    // ТИПОГРАФИКА: НЕ ОСТАВЛЯЕМ КОРОТКИЕ СОЮЗЫ И ПРЕДЛОГИ В КОНЦЕ СТРОКИ
+
+    function applyTypography(root) {
+      if (!root) return;
+
+      const shortWords = 'и|а|но|да|в|во|к|ко|с|со|у|о|об|от|до|из|за|на|по|под|над|при|про|без|для|через|между';
+      const pattern = new RegExp(
+        '(^|[^\\p{L}\\p{N}_])(' + shortWords + ')[\\t \\r\\n]+(?=\\S)',
+        'giu'
+      );
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        const parent = node.parentElement;
+
+        if (parent && parent.closest('script, style, textarea, input, select, option')) {
+          continue;
+        }
+
+        node.textContent = node.textContent.replace(pattern, (match, prefix, word) => prefix + word + '\u00A0');
+      }
+    }
+
+    // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
+
+    function renderGreeting(group, guests, content = {}, settings = {}) {
+      const isRespectful = group?.greeting_style === 'respectful';
+      const heading = document.getElementById('greeting-heading');
+      const date = document.getElementById('event-date');
+      const namesContainer = document.getElementById('greeting-names');
+      const intro = document.getElementById('greeting-intro');
+      const additional = document.getElementById('greeting-additional');
+
+      heading.textContent = isRespectful
+        ? 'Уважаемые'
+        : 'Дорогие родные и близкие!';
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      document.getElementById('block-greeting').style.textAlign = alignment;
+      date.hidden = settings.show_event_date === false;
+
+      intro.textContent = typeof content.intro_text === 'string'
+        ? content.intro_text
+        : '';
+      intro.hidden = !intro.textContent.trim();
+
+      additional.textContent = typeof content.additional_text === 'string'
+        ? content.additional_text
+        : '';
+      additional.hidden = !additional.textContent.trim();
+
+      namesContainer.replaceChildren();
+
+      const personalization = ['real', 'examples', 'none'].includes(settings.personalization)
+        ? settings.personalization
+        : 'real';
+
+      if (personalization === 'none') {
+        namesContainer.hidden = true;
+        return;
+      }
+
+      namesContainer.hidden = false;
+
+      const names = personalization === 'examples'
+        ? [
+            { first_name: 'Александр' },
+            { first_name: 'Мария' },
+            { first_name: 'Максим' }
+          ]
+        : guests;
+
+      names.forEach((guest, index) => {
+        const name = document.createElement('span');
+        name.className = 'greeting-name';
+
+        const nameParts = [guest.first_name];
+
+        if (
+          personalization === 'real' &&
+          isRespectful &&
+          ['male', 'female'].includes(guest.salutation_type) &&
+          guest.patronymic
+        ) {
+          nameParts.push(guest.patronymic);
+        }
+
+        name.textContent = nameParts.filter(Boolean).join(' ');
+        namesContainer.appendChild(name);
+
+        if (index < names.length - 1) {
+          const separator = document.createElement('span');
+          separator.className = 'greeting-separator';
+          separator.textContent = index === names.length - 2 ? '\u00A0и\u00A0' : ', ';
+          namesContainer.appendChild(separator);
+        }
+      });
+    }
+
+    // ОТОБРАЖЕНИЕ ТЕКСТА ПРИГЛАШЕНИЯ
+
+    function renderInvitationText(content = {}, settings = {}) {
+      const block = document.getElementById('block-invitation-text');
+      const title = document.getElementById('invitation-title');
+      const paragraphsContainer = document.getElementById('invitation-paragraphs');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = !titleText || settings.show_title === false;
+
+      const paragraphs = Array.isArray(content.paragraphs)
+        ? content.paragraphs.filter(paragraph =>
+            typeof paragraph === 'string' && paragraph.trim()
+          )
+        : [];
+
+      paragraphsContainer.replaceChildren();
+
+      const textStyle = ['large', 'italic'].includes(settings.text_style)
+        ? settings.text_style
+        : 'normal';
+      paragraphsContainer.classList.remove('text-style-large', 'text-style-italic');
+      if (textStyle !== 'normal') {
+        paragraphsContainer.classList.add('text-style-' + textStyle);
+      }
+
+      const displayedParagraphs = paragraphs.length
+        ? paragraphs
+        : [
+            'Мы будем счастливы разделить с вами один из самых важных дней нашей жизни. Приглашаем вас на нашу свадьбу!'
+          ];
+
+      displayedParagraphs.forEach(paragraph => {
+        const element = document.createElement('p');
+        element.textContent = paragraph.trim();
+        paragraphsContainer.appendChild(element);
+      });
+    }
+
+    // ОТОБРАЖЕНИЕ ПОДПИСИ
+
+    function renderCoupleSignature(content = {}, settings = {}) {
+      const block = document.getElementById('block-couple-signature');
+      const text = document.getElementById('couple-signature-text');
+      const subtitle = document.getElementById('couple-signature-subtitle');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      text.textContent = typeof content.text === 'string' && content.text.trim()
+        ? content.text.trim()
+        : 'С любовью,';
+
+      subtitle.textContent = typeof content.subtitle === 'string'
+        ? content.subtitle.trim()
+        : 'Александр и Мария';
+      subtitle.hidden = settings.show_subtitle === false || !subtitle.textContent;
+
+      const textStyle = ['normal', 'italic', 'large'].includes(settings.text_style)
+        ? settings.text_style
+        : 'italic';
+
+      [text, subtitle].forEach(element => {
+        element.classList.remove('text-style-normal', 'text-style-large');
+        if (textStyle !== 'italic') {
+          element.classList.add('text-style-' + textStyle);
+        }
+      });
+    }
+
+    // ОТОБРАЖЕНИЕ ИНФОРМАЦИИ О МЕРОПРИЯТИИ
+
+    function renderEventInfo(event, content = {}, settings = {}) {
+      const block = document.getElementById('block-event-info');
+      const title = document.getElementById('event-info-title');
+      const itemsContainer = document.getElementById('event-info-items');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string' && content.title.trim()
+        ? content.title.trim()
+        : 'Будем рады вас видеть';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false;
+
+      const eventValues = {
+        date: event.date ? formatDate(event.date) : '',
+        time: event.time ? String(event.time).slice(0, 5) : '',
+        venue: event.venue_name || '',
+        address: event.venue_address || event.address || ''
+      };
+
+      const defaultItems = [
+        { type: 'date', label: '' },
+        { type: 'time', label: 'Начало в' },
+        { type: 'venue', label: 'Место проведения' },
+        { type: 'address', label: 'Адрес' }
+      ];
+
+      // items задаёт порядок и подписи, а значения всегда берутся из event.
+      const configuredItems = Array.isArray(content.items)
+        ? content.items.filter(item =>
+            item && ['date', 'time', 'venue', 'address'].includes(item.type)
+          )
+        : [];
+      const items = configuredItems.length ? configuredItems : defaultItems;
+
+      itemsContainer.replaceChildren();
+      itemsContainer.classList.toggle('layout-compact', settings.layout === 'compact');
+
+      items.forEach(item => {
+        const value = eventValues[item.type];
+        if (!value) return;
+
+        const itemElement = document.createElement('div');
+        itemElement.className = 'event-info-item';
+
+        const labelText = typeof item.label === 'string' && item.label.trim()
+          ? item.label.trim()
+          : defaultItems.find(defaultItem => defaultItem.type === item.type).label;
+
+        if (settings.show_labels !== false && labelText) {
+          const label = document.createElement('span');
+          label.className = 'event-info-label';
+          label.textContent = labelText;
+          itemElement.appendChild(label);
+        }
+
+        const valueElement = document.createElement('span');
+        valueElement.className = 'event-info-value';
+        valueElement.textContent = value;
+        itemElement.appendChild(valueElement);
+
+        itemsContainer.appendChild(itemElement);
+      });
+    }
+
+    // ОТОБРАЖЕНИЕ ДРЕСС-КОДА
+
+    function renderDressCode(content = {}, settings = {}) {
+      const block = document.getElementById('block-dress-code');
+      const isConfiguredVisible = !block.hidden;
+      const title = document.getElementById('dress-code-title');
+      const contentContainer = document.getElementById('dress-code-content');
+      const image = document.getElementById('dress-code-image');
+      const description = document.getElementById('dress-code-description');
+      const itemsContainer = document.getElementById('dress-code-items');
+
+      const updateBlockVisibility = () => {
+        const hasContent = Boolean(
+          description.textContent.trim() ||
+          itemsContainer.children.length ||
+          !image.hidden
+        );
+        block.hidden = !isConfiguredVisible || !hasContent;
+      };
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string' && content.title.trim()
+        ? content.title.trim()
+        : 'Дресс-код';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      description.textContent = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.hidden = !description.textContent;
+
+      const items = Array.isArray(content.items) ? content.items : [];
+      itemsContainer.replaceChildren();
+
+      items.forEach(item => {
+        const itemText = typeof item === 'string'
+          ? item.trim()
+          : item && typeof item === 'object'
+            ? [item.text, item.label, item.name]
+                .find(value => typeof value === 'string' && value.trim())?.trim() || ''
+            : '';
+
+        if (!itemText) return;
+
+        const listItem = document.createElement('li');
+        listItem.textContent = itemText;
+        itemsContainer.appendChild(listItem);
+      });
+
+      itemsContainer.hidden = itemsContainer.children.length === 0;
+
+      const imageValue = typeof content.image === 'string'
+        ? content.image
+        : content.image && typeof content.image === 'object'
+          ? content.image.url || content.image.src || ''
+          : '';
+      const imageUrl = typeof imageValue === 'string' ? imageValue.trim() : '';
+
+      image.hidden = true;
+      image.removeAttribute('src');
+      image.alt = typeof content.image?.alt === 'string'
+        ? content.image.alt
+        : 'Иллюстрация дресс-кода';
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+        updateBlockVisibility();
+      };
+
+      if (settings.show_image !== false && imageUrl) {
+        try {
+          const parsedUrl = new URL(imageUrl, window.location.href);
+          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+            image.src = parsedUrl.href;
+            image.hidden = false;
+          }
+        } catch (error) {
+          console.warn('EventFlow: некорректная ссылка изображения дресс-кода');
+        }
+      }
+
+      const layout = ['image-left', 'image-right'].includes(settings.layout)
+        ? settings.layout
+        : 'stacked';
+      contentContainer.classList.remove(
+        'layout-image-left',
+        'layout-image-right'
+      );
+      if (layout !== 'stacked') {
+        contentContainer.classList.add('layout-' + layout);
+      }
+
+      updateBlockVisibility();
+    }
+
+    // ОТОБРАЖЕНИЕ МЕНЮ
+
+    function renderMenu(content = {}, settings = {}) {
+      const block = document.getElementById('block-menu');
+      const isConfiguredVisible = !block.hidden;
+      const title = document.getElementById('menu-title');
+      const description = document.getElementById('menu-description');
+      const sectionsContainer = document.getElementById('menu-sections');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      const descriptionText = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.textContent = descriptionText;
+      description.hidden = settings.show_description === false || !descriptionText;
+
+      const sections = Array.isArray(content.sections) ? content.sections : [];
+      sectionsContainer.replaceChildren();
+
+      sections.forEach(section => {
+        if (!section || typeof section !== 'object') return;
+
+        const sectionTitle = [section.title, section.name]
+          .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+        const rawItems = Array.isArray(section.items) ? section.items : [];
+        const items = rawItems.map(item => {
+          if (typeof item === 'string') {
+            return { name: item.trim(), description: '' };
+          }
+          if (!item || typeof item !== 'object') return null;
+
+          const name = [item.name, item.title, item.text]
+            .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+          const itemDescription = typeof item.description === 'string'
+            ? item.description.trim()
+            : '';
+          return name || itemDescription
+            ? { name, description: itemDescription }
+            : null;
+        }).filter(Boolean);
+
+        if (!sectionTitle && items.length === 0) return;
+
+        const sectionElement = document.createElement('section');
+        sectionElement.className = 'menu-section';
+
+        if (sectionTitle) {
+          const heading = document.createElement('h3');
+          heading.className = 'menu-section-title';
+          heading.textContent = sectionTitle;
+          sectionElement.appendChild(heading);
+        }
+
+        if (items.length) {
+          const list = document.createElement('ul');
+          list.className = 'menu-section-items';
+
+          items.forEach(item => {
+            const listItem = document.createElement('li');
+            if (item.name) {
+              const name = document.createElement('span');
+              name.textContent = item.name;
+              listItem.appendChild(name);
+            }
+            if (item.description) {
+              const itemDescription = document.createElement('span');
+              itemDescription.className = 'menu-section-item-description';
+              itemDescription.textContent = item.description;
+              listItem.appendChild(itemDescription);
+            }
+            list.appendChild(listItem);
+          });
+
+          sectionElement.appendChild(list);
+        }
+
+        sectionsContainer.appendChild(sectionElement);
+      });
+
+      const hasDescription = !description.hidden;
+      const hasSections = sectionsContainer.children.length > 0;
+      const hasContent = hasDescription || hasSections;
+      sectionsContainer.hidden = !hasSections;
+
+      const layout = settings.layout === 'columns' ? 'columns' : 'stacked';
+      sectionsContainer.classList.toggle('layout-columns', layout === 'columns');
+
+      block.hidden = !isConfiguredVisible || !hasContent;
+      title.hidden = title.hidden || !hasContent;
+    }
+
+    // ОТОБРАЖЕНИЕ СХЕМЫ РАССАДКИ
+
+    function renderSeating(content = {}, settings = {}) {
+      const block = document.getElementById('block-seating');
+      const isConfiguredVisible = !block.hidden;
+      const title = document.getElementById('seating-title');
+      const contentContainer = document.getElementById('seating-content');
+      const image = document.getElementById('seating-image');
+      const description = document.getElementById('seating-description');
+      const itemsContainer = document.getElementById('seating-items');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      description.textContent = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.hidden = !description.textContent;
+
+      const items = Array.isArray(content.items) ? content.items : [];
+      itemsContainer.replaceChildren();
+
+      items.forEach(item => {
+        if (typeof item === 'string' && item.trim()) {
+          const listItem = document.createElement('li');
+          listItem.textContent = item.trim();
+          itemsContainer.appendChild(listItem);
+          return;
+        }
+
+        if (!item || typeof item !== 'object') return;
+
+        const itemTitle = [item.title, item.name, item.label]
+          .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+        const rawGuests = Array.isArray(item.guests)
+          ? item.guests
+          : Array.isArray(item.items)
+            ? item.items
+            : [];
+        const guests = rawGuests
+          .filter(guest => typeof guest === 'string' && guest.trim())
+          .map(guest => guest.trim());
+
+        if (!itemTitle && guests.length === 0) return;
+
+        const listItem = document.createElement('li');
+
+        if (itemTitle) {
+          const heading = document.createElement('h3');
+          heading.className = 'seating-item-title';
+          heading.textContent = itemTitle;
+          listItem.appendChild(heading);
+        }
+
+        if (guests.length) {
+          const guestList = document.createElement('ul');
+          guestList.className = 'seating-item-guests';
+          guests.forEach(guest => {
+            const guestElement = document.createElement('li');
+            guestElement.textContent = guest;
+            guestList.appendChild(guestElement);
+          });
+          listItem.appendChild(guestList);
+        }
+
+        itemsContainer.appendChild(listItem);
+      });
+
+      itemsContainer.hidden = itemsContainer.children.length === 0;
+
+      const imageValue = typeof content.image === 'string'
+        ? content.image
+        : content.image && typeof content.image === 'object'
+          ? content.image.url || content.image.src || ''
+          : '';
+      const imageUrl = typeof imageValue === 'string' ? imageValue.trim() : '';
+
+      image.hidden = true;
+      image.removeAttribute('src');
+      image.alt = typeof content.image?.alt === 'string'
+        ? content.image.alt
+        : 'Схема рассадки гостей';
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+      };
+
+      if (settings.show_image !== false && imageUrl) {
+        try {
+          const parsedUrl = new URL(imageUrl, window.location.href);
+          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+            image.src = parsedUrl.href;
+            image.hidden = false;
+          }
+        } catch (error) {
+          console.warn('EventFlow: некорректная ссылка схемы рассадки');
+        }
+      }
+
+      const layout = ['image-left', 'image-right'].includes(settings.layout)
+        ? settings.layout
+        : 'stacked';
+      contentContainer.classList.remove(
+        'layout-image-left',
+        'layout-image-right'
+      );
+      if (layout !== 'stacked') {
+        contentContainer.classList.add('layout-' + layout);
+      }
+
+      const hasContent = Boolean(
+        description.textContent.trim() ||
+        itemsContainer.children.length ||
+        !image.hidden
+      );
+      block.hidden = !isConfiguredVisible || !hasContent;
+      title.hidden = title.hidden || !hasContent;
+    }
+
+    // ОТОБРАЖЕНИЕ ГОСТЕЙ
+
+    function renderGuests(guests) {
+      const guestList = document.getElementById('guest-list');
+
+      guestList.replaceChildren();
+
+      guests.forEach((guest, index) => {
+        const guestItem = document.createElement('div');
+        guestItem.className = 'guest-item';
+
+        const guestName = document.createElement('span');
+        guestName.className = 'guest-name';
+
+        const guestNameParts = [guest.first_name];
+
+        if (guest.salutation_type === 'male') {
+          guestName.textContent = 'Уважаемый ' +
+            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+        } else if (guest.salutation_type === 'female') {
+          guestName.textContent = 'Уважаемая ' +
+            [guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+        } else {
+          guestName.textContent = guestNameParts.filter(Boolean).join(' ');
+        }
+
+        const options = document.createElement('div');
+        options.className = 'guest-options';
+
+        const radioName = 'guest-' + index;
+
+        const currentStatus = guest.rsvp_status;
+
+        const yesChecked = currentStatus === 'confirmed';
+        const noChecked = currentStatus === 'declined';
+
+        options.innerHTML = `
+          <div class="guest-option">
+            <button type="button" class="guest-choice ${yesChecked ? 'is-selected' : ''}"
+              data-value="yes" aria-pressed="${yesChecked}">Приду</button>
+          </div>
+
+          <div class="guest-option">
+            <button type="button" class="guest-choice ${noChecked ? 'is-selected' : ''}"
+              data-value="no" aria-pressed="${noChecked}">Не смогу</button>
+          </div>
+        `;
+
+        // Кнопки работают как переключатели: повторное нажатие снимает выбор.
+        options.querySelectorAll('.guest-choice').forEach(choice => {
+          choice.addEventListener('click', () => {
+            const wasSelected = choice.classList.contains('is-selected');
+
+            options.querySelectorAll('.guest-choice').forEach(button => {
+              button.classList.remove('is-selected');
+              button.setAttribute('aria-pressed', 'false');
+            });
+
+            if (!wasSelected) {
+              choice.classList.add('is-selected');
+              choice.setAttribute('aria-pressed', 'true');
+            }
+          });
+        });
+
+        guestItem.appendChild(guestName);
+        guestItem.appendChild(options);
+
+        guestList.appendChild(guestItem);
+      });
+
+      document.getElementById('rsvp-section').style.display = 'block';
+    }
+
+    // ПРИМЕНЕНИЕ НАСТРОЕК БЛОКОВ ПРИГЛАШЕНИЯ
+
+    function applyBlockConfiguration(blocks) {
+      if (!Array.isArray(blocks)) return;
+
+      const blockElements = Array.from(
+        document.querySelectorAll('.event-block[data-block-key]')
+      );
+
+      const blockSettings = new Map(
+        blocks.map(block => [block.block_key, block])
+      );
+
+      blockElements.forEach(element => {
+        const settings = blockSettings.get(element.dataset.blockKey);
+
+        // Если запись блока отсутствует, сохраняем текущее поведение страницы.
+        if (!settings) return;
+
+        element.hidden = settings.is_visible === false;
+      });
+
+      const orderedElements = blockElements
+        .filter(element => blockSettings.has(element.dataset.blockKey))
+        .sort((a, b) => {
+          const aOrder = Number(blockSettings.get(a.dataset.blockKey).sort_order ?? 0);
+          const bOrder = Number(blockSettings.get(b.dataset.blockKey).sort_order ?? 0);
+          return aOrder - bOrder;
+        });
+
+      const container = document.querySelector('.invitation');
+      const connectionStatus = document.getElementById('connection-status');
+
+      orderedElements.forEach(element => {
+        container.insertBefore(element, connectionStatus);
+      });
+
+      // Подсказка прокрутки остаётся сразу после подписи, если она есть.
+      const scrollHint = document.getElementById('scroll-hint');
+      const signatureBlock = document.getElementById('block-couple-signature');
+      const lastBlock = orderedElements[orderedElements.length - 1];
+
+      if (scrollHint) {
+        const anchor = signatureBlock || lastBlock;
+        if (anchor) anchor.after(scrollHint);
+      }
+    }
+
+    // ЗАГРУЗКА ПРИГЛАШЕНИЯ
+
+    // ПОДКЛЮЧЕНИЕ И ЗАГРУЗКА ВРЕМЕННОГО ПРИГЛАШЕНИЯ
+
+    function loadInvitation() {
+      connectDemoSession();
+    }
+
+    // ОТПРАВКА RSVP
+
+    // ОТПРАВКА RSVP В ОПЕРАТИВНУЮ ПАМЯТЬ ДЕМОСЕССИИ
+
+    function submitRSVP(event) {
+      event.preventDefault();
+
+      const button = document.getElementById('submit-button');
+      const status = document.getElementById('rsvp-status');
+      status.textContent = '';
+      status.className = 'rsvp-status';
+
+      if (!demoPort || !demoState) {
+        status.textContent = 'Демосессия ещё не подключена. Обновите страницу.';
+        status.classList.add('error');
+        return;
+      }
+
+      const responses = [];
+
+      invitationGuests.forEach((guest, index) => {
+        const guestItem = document.querySelectorAll('.guest-item')[index];
+        const selected = guestItem?.querySelector('.guest-choice.is-selected');
+        const initialAttendance =
+          guest.rsvp_status === 'confirmed' ? 'yes' :
+          guest.rsvp_status === 'declined' ? 'no' : null;
+        const currentAttendance = selected ? selected.dataset.value : null;
+
+        if (currentAttendance !== initialAttendance) {
+          responses.push({
+            guest_id: guest.id,
+            attendance: currentAttendance || 'pending'
+          });
+        }
+      });
+
+      const comment = document.getElementById('rsvp-comment').value.trim();
+      const previousComment = demoState.rsvp?.comment || '';
+
+      if (responses.length === 0 && comment === previousComment) {
+        status.textContent = 'Нет изменений для отправки. Измените ответ или комментарий.';
+        status.classList.add('error');
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Сохраняем...';
+
+      try {
+        demoPort.postMessage({
+          type: 'submit-rsvp',
+          responses,
+          comment
+        });
+
+        status.textContent = 'Спасибо! Ваш ответ сохранён в этой демосессии.';
+        status.classList.add('success');
+      } catch (error) {
+        console.error('EventFlow demo RSVP error:', error);
+        status.textContent = 'Не удалось сохранить ответ. Попробуйте ещё раз.';
+        status.classList.add('error');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Отправить ответ';
+      }
+    }
+
+    // ОБРАБОТЧИК ФОРМЫ
+
+    document.getElementById('rsvp-form').addEventListener(
+      'submit',
+      submitRSVP
+    );
+
+    // ЗАПУСК
+
+    applyTypography(document.querySelector('.invitation'));
+    loadInvitation();
+    window.addEventListener('pagehide', disconnectDemoSession);
+
+  </script>
+
+</body>
+</html>
