@@ -745,7 +745,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=2', { name: 'eventflow-demo-v2' });
+        const worker = new SharedWorker('./demo-worker.js?v=3', { name: 'eventflow-demo-v3' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
