@@ -262,47 +262,56 @@
 <body>
   <main class="invitation">
 
-    <div class="date" id="event-date">
-      12 июня 2027 года
+    <div class="event-block" id="block-greeting" data-block-key="greeting">
+      <div class="date" id="event-date">
+        12 июня 2027 года
+      </div>
+
+      <div class="eyebrow" id="greeting-heading">
+        Дорогие родные и близкие!
+      </div>
+
+      <div class="greeting-names" id="greeting-names"></div>
     </div>
 
-    <div class="eyebrow" id="greeting-heading">
-      Дорогие родные и близкие!
+    <div class="event-block" id="block-invitation-text" data-block-key="invitation_text">
+      <p class="message">
+        Мы будем счастливы разделить с вами
+        один из самых важных дней нашей жизни.
+        Приглашаем вас на нашу свадьбу!
+      </p>
     </div>
 
-    <div class="greeting-names" id="greeting-names"></div>
-
-    <p class="message">
-      Мы будем счастливы разделить с вами
-      один из самых важных дней нашей жизни.
-      Приглашаем вас на нашу свадьбу!
-    </p>
-
-    <div class="signature">
-      С любовью,<br>
-      Александр и Мария
+    <div class="event-block" id="block-couple-signature" data-block-key="couple_signature">
+      <div class="signature">
+        С любовью,<br>
+        Александр и Мария
+      </div>
     </div>
 
-    <div class="scroll-hint">
+    <div class="scroll-hint" id="scroll-hint">
       Прокрутите вниз
     </div>
 
-    <section class="details">
-      <h2>Будем рады вас видеть</h2>
+    <section class="event-block" id="block-event-info" data-block-key="event_info">
+      <section class="details">
+        <h2>Будем рады вас видеть</h2>
 
-      <p>
-        <span id="details-date">12 июня 2027 года</span><br>
-        Начало в <span id="event-time">16:00</span>
-      </p>
+        <p>
+          <span id="details-date">12 июня 2027 года</span><br>
+          Начало в <span id="event-time">16:00</span>
+        </p>
 
-      <p>
-        Место проведения<br>
-        <span id="event-venue">Информация появится позже</span>
-      </p>
+        <p>
+          Место проведения<br>
+          <span id="event-venue">Информация появится позже</span>
+        </p>
+      </section>
     </section>
 
     <!-- RSVP -->
 
+    <div class="event-block" id="block-rsvp" data-block-key="rsvp">
     <section class="rsvp" id="rsvp-section">
       <h2>Подтвердите присутствие</h2>
 
@@ -333,6 +342,7 @@
 
       </form>
     </section>
+    </div>
 
     <div class="connection-status" id="connection-status"></div>
 
@@ -509,6 +519,54 @@
       document.getElementById('rsvp-section').style.display = 'block';
     }
 
+    // ПРИМЕНЕНИЕ НАСТРОЕК БЛОКОВ ПРИГЛАШЕНИЯ
+
+    function applyBlockConfiguration(blocks) {
+      if (!Array.isArray(blocks)) return;
+
+      const blockElements = Array.from(
+        document.querySelectorAll('.event-block[data-block-key]')
+      );
+
+      const blockSettings = new Map(
+        blocks.map(block => [block.block_key, block])
+      );
+
+      blockElements.forEach(element => {
+        const settings = blockSettings.get(element.dataset.blockKey);
+
+        // Если запись блока отсутствует, сохраняем текущее поведение страницы.
+        if (!settings) return;
+
+        element.hidden = settings.is_visible === false;
+      });
+
+      const orderedElements = blockElements
+        .filter(element => blockSettings.has(element.dataset.blockKey))
+        .sort((a, b) => {
+          const aOrder = Number(blockSettings.get(a.dataset.blockKey).sort_order ?? 0);
+          const bOrder = Number(blockSettings.get(b.dataset.blockKey).sort_order ?? 0);
+          return aOrder - bOrder;
+        });
+
+      const container = document.querySelector('.invitation');
+      const connectionStatus = document.getElementById('connection-status');
+
+      orderedElements.forEach(element => {
+        container.insertBefore(element, connectionStatus);
+      });
+
+      // Подсказка прокрутки остаётся сразу после подписи, если она есть.
+      const scrollHint = document.getElementById('scroll-hint');
+      const signatureBlock = document.getElementById('block-couple-signature');
+      const lastBlock = orderedElements[orderedElements.length - 1];
+
+      if (scrollHint) {
+        const anchor = signatureBlock || lastBlock;
+        if (anchor) anchor.after(scrollHint);
+      }
+    }
+
     // ЗАГРУЗКА ПРИГЛАШЕНИЯ
 
     async function loadInvitation() {
@@ -541,6 +599,9 @@
         }
 
         const event = data.event;
+
+        // Настройки видимости и порядка блоков приходят из event_blocks.
+        applyBlockConfiguration(data.blocks);
 
         // ДАТА
 
