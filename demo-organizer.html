@@ -657,7 +657,7 @@ input:focus {
   background: #f8eeee;
 }
 
-.logout {
+.logout, .stats-shortcut {
   background: none;
   border: 1px solid var(--border);
   padding: 9px 14px;
@@ -666,6 +666,24 @@ input:focus {
   color: var(--muted);
   font-size: 12px;
 }
+.stats-shortcut {
+  color: var(--text);
+  background: #fff;
+}
+.dashboard-nav button { position: relative; }
+.dashboard-nav-label { flex: 1; }
+.stage-indicator {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: #c9c6bd;
+}
+.stage-indicator.status-progress { background: #c49a52; }
+.stage-indicator.status-complete { background: #6e9478; }
+.dashboard-nav button.active .stage-indicator.status-not-started { background: #aaa69a; }
+.dashboard-nav button.active .stage-indicator.status-progress { background: #e5c98e; }
+.dashboard-nav button.active .stage-indicator.status-complete { background: #b6d1bb; }
 
 .dash-note {
   color: var(--muted);
@@ -698,7 +716,7 @@ input:focus {
   .dash-header { margin-bottom: 22px; }
   .dash-brand { font-size: 25px; }
   .demo-label { font-size: 9px; padding: 7px 9px; }
-  .logout { padding: 8px 10px; }
+  .logout, .stats-shortcut { padding: 8px 10px; }
   .event-hero { padding: 26px 22px; margin-bottom: 14px; }
   .event-hero:after { right: 12px; top: 16px; font-size: 78px; }
   .event-title { font-size: 29px; max-width: 85%; }
@@ -728,39 +746,53 @@ input:focus {
       <div class="dash-brand">EventFlow</div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="demo-label">DEMO MODE</span>
+        <button class="stats-shortcut" type="button" onclick="setDashboardSection('statistics')">Статистика</button>
         <button class="logout" onclick="logout()">Выйти</button>
       </div>
     </div>
 
 
     <div class="dashboard-shell">
-      <nav class="dashboard-nav" aria-label="Разделы пульта организатора">
-        <button class="active" type="button" data-section="overview" aria-current="page"><span class="dashboard-nav-icon">⌂</span>Обзор</button>
-        <button type="button" data-section="event"><span class="dashboard-nav-icon">▦</span>Мероприятие</button>
-        <button type="button" data-section="guests"><span class="dashboard-nav-icon">♧</span>Гости</button>
-        <button type="button" data-section="invitation"><span class="dashboard-nav-icon">✉</span>Приглашение</button>
-        <button type="button" data-section="seating"><span class="dashboard-nav-icon">▤</span>Рассадка</button>
-        <button type="button" data-section="mailing"><span class="dashboard-nav-icon">➤</span>Рассылка</button>
-        <button type="button" data-section="statistics"><span class="dashboard-nav-icon">▥</span>Статистика</button>
+      <nav class="dashboard-nav" aria-label="Этапы мероприятия">
+        <button class="active" type="button" data-section="event" aria-current="page">
+          <span class="dashboard-nav-icon">▦</span><span class="dashboard-nav-label">Мероприятие</span>
+          <span class="stage-indicator status-progress" aria-label="В процессе" title="В процессе"></span>
+        </button>
+        <button type="button" data-section="invitation">
+          <span class="dashboard-nav-icon">✉</span><span class="dashboard-nav-label">Приглашение</span>
+          <span class="stage-indicator status-progress" aria-label="В процессе" title="В процессе"></span>
+        </button>
+        <button type="button" data-section="guests">
+          <span class="dashboard-nav-icon">♧</span><span class="dashboard-nav-label">Гости</span>
+          <span class="stage-indicator status-progress" aria-label="В процессе" title="В процессе"></span>
+        </button>
+        <button type="button" data-section="mailing">
+          <span class="dashboard-nav-icon">➤</span><span class="dashboard-nav-label">Рассылка</span>
+          <span class="stage-indicator status-not-started" aria-label="Не начат" title="Не начат"></span>
+        </button>
+        <button type="button" data-section="seating">
+          <span class="dashboard-nav-icon">▤</span><span class="dashboard-nav-label">Рассадка</span>
+          <span class="stage-indicator status-not-started" aria-label="Не начат" title="Не начат"></span>
+        </button>
+        <button type="button" data-section="event-day">
+          <span class="dashboard-nav-icon">✓</span><span class="dashboard-nav-label">День мероприятия</span>
+          <span class="stage-indicator status-not-started" aria-label="Не начат" title="Не начат"></span>
+        </button>
+        <button type="button" data-section="after-event">
+          <span class="dashboard-nav-icon">✧</span><span class="dashboard-nav-label">После мероприятия</span>
+          <span class="stage-indicator status-not-started" aria-label="Не начат" title="Не начат"></span>
+        </button>
       </nav>
 
       <main class="dashboard-main">
-        <section class="dashboard-section active" id="section-overview" data-section-panel="overview">
+
+        <section class="dashboard-section" id="section-event" data-section-panel="event">
 <section class="event-hero">
       <div class="event-kicker">Ваше мероприятие</div>
       <h1 class="event-title" id="eventTitle">Загрузка мероприятия…</h1>
       <div class="event-date" id="eventDate"></div>
       <div class="event-venue" id="eventVenue"></div>
     </section>
-          <div class="stats">
-            <div class="stat"><div class="stat-number" id="totalGuests">—</div><div class="stat-label">Всего гостей</div></div>
-            <div class="stat confirmed"><div class="stat-number" id="confirmedGuests">—</div><div class="stat-label">Придут</div></div>
-            <div class="stat declined"><div class="stat-number" id="declinedGuests">—</div><div class="stat-label">Не придут</div></div>
-            <div class="stat pending"><div class="stat-number" id="pendingGuests">—</div><div class="stat-label">Ожидают ответа</div></div>
-          </div>
-        </section>
-
-        <section class="dashboard-section" id="section-event" data-section-panel="event">
 <section class="panel event-edit-panel">
       <div class="panel-head">
         <h2>Данные мероприятия</h2>
@@ -797,13 +829,22 @@ input:focus {
     </section>
 
     <div class="message" id="dashboardMessage" role="status"></div>
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">▦</div>
-            <h2>Контроль входа по QR-кодам</h2>
-            <p>Здесь будет сканер QR-кодов приглашений и журнал регистрации гостей. Можно будет проверять состав приглашения и отмечать фактическое прибытие участников.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
-          </section>
+          
         </section>
+
+
+        <section class="dashboard-section" id="section-invitation" data-section-panel="invitation">
+<section class="panel blocks-panel">
+      <div class="panel-head">
+        <h2>Блоки приглашения</h2>
+      </div>
+      <p class="blocks-description">Включайте нужные разделы и меняйте их порядок. Изменения сразу отображаются в гостевом приглашении этой демосессии.</p>
+      <div id="invitationBlocksList" aria-live="polite">
+        <div class="guest-empty">Загружаем блоки приглашения…</div>
+      </div>
+    </section>
+        </section>
+
 
         <section class="dashboard-section" id="section-guests" data-section-panel="guests">
 <div class="panel guest-management-panel">
@@ -876,26 +917,6 @@ input:focus {
     </div>
         </section>
 
-        <section class="dashboard-section" id="section-invitation" data-section-panel="invitation">
-<section class="panel blocks-panel">
-      <div class="panel-head">
-        <h2>Блоки приглашения</h2>
-      </div>
-      <p class="blocks-description">Включайте нужные разделы и меняйте их порядок. Изменения сразу отображаются в гостевом приглашении этой демосессии.</p>
-      <div id="invitationBlocksList" aria-live="polite">
-        <div class="guest-empty">Загружаем блоки приглашения…</div>
-      </div>
-    </section>
-        </section>
-
-        <section class="dashboard-section" id="section-seating" data-section-panel="seating">
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">▤</div>
-            <h2>План рассадки</h2>
-            <p>Здесь будет редактор схемы размещения гостей: столы, места и распределение приглашённых с отображением плана в приглашении.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
-          </section>
-        </section>
 
         <section class="dashboard-section" id="section-mailing" data-section-panel="mailing">
           <section class="panel placeholder-panel">
@@ -906,7 +927,44 @@ input:focus {
           </section>
         </section>
 
+
+        <section class="dashboard-section" id="section-seating" data-section-panel="seating">
+          <section class="panel placeholder-panel">
+            <div class="placeholder-icon">▤</div>
+            <h2>План рассадки</h2>
+            <p>Здесь будет редактор схемы размещения гостей: столы, места и распределение приглашённых с отображением плана в приглашении.</p>
+            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          </section>
+        </section>
+
+
+        <section class="dashboard-section" id="section-event-day" data-section-panel="event-day">
+          <section class="panel placeholder-panel">
+            <div class="placeholder-icon">▦</div>
+            <h2>Контроль входа по QR-кодам</h2>
+            <p>Здесь будет сканер QR-кодов приглашений и журнал регистрации гостей. Можно будет проверять состав приглашения и отмечать фактическое прибытие участников.</p>
+            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          </section>
+        </section>
+
+
+        <section class="dashboard-section" id="section-after-event" data-section-panel="after-event">
+          <section class="panel placeholder-panel">
+            <div class="placeholder-icon">✧</div>
+            <h2>После мероприятия</h2>
+            <p>Здесь будут инструменты для отправки благодарностей гостям и публикации фотографий, видео и других материалов с мероприятия.</p>
+            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          </section>
+        </section>
+
+
         <section class="dashboard-section" id="section-statistics" data-section-panel="statistics">
+          <div class="stats">
+            <div class="stat"><div class="stat-number" id="totalGuests">—</div><div class="stat-label">Всего гостей</div></div>
+            <div class="stat confirmed"><div class="stat-number" id="confirmedGuests">—</div><div class="stat-label">Придут</div></div>
+            <div class="stat declined"><div class="stat-number" id="declinedGuests">—</div><div class="stat-label">Не придут</div></div>
+            <div class="stat pending"><div class="stat-number" id="pendingGuests">—</div><div class="stat-label">Ожидают ответа</div></div>
+          </div>
           <section class="panel placeholder-panel">
             <div class="placeholder-icon">▥</div>
             <h2>Статистика мероприятия</h2>
@@ -914,7 +972,7 @@ input:focus {
             <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
           </section>
         </section>
-      </main>
+            </main>
     </div>
   </div>
 </div>
@@ -929,8 +987,8 @@ let currentGuestFilter = 'all';
 
 function setDashboardSection(section) {
   const allowedSections = [
-    'overview', 'event', 'guests', 'invitation',
-    'seating', 'mailing', 'statistics'
+    'event', 'invitation', 'guests', 'mailing',
+    'seating', 'event-day', 'after-event', 'statistics'
   ];
   if (!allowedSections.includes(section)) return;
 
