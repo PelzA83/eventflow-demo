@@ -642,6 +642,18 @@ input:focus {
 }
 .guest:hover { background: #fcfbf8; }
 .guest-name { font-size: 14px; font-weight: 600; letter-spacing: .1px; }
+.guest-row-actions { display: flex; align-items: center; gap: 8px; }
+.guest-link-button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.guest-link-button:hover { background: #f7f5f0; }
 
 .status {
   font-size: 11px;
@@ -1063,17 +1075,8 @@ function renderGuests(guests) {
     const name = document.createElement('div');
     name.className = 'guest-name';
 
-    const nameParts = [guest.first_name, guest.patronymic].filter(Boolean);
-    const guestName = nameParts.join(' ') || 'Без имени';
-    const salutation = guest.greeting_style === 'respectful'
-      ? guest.salutation_type === 'male'
-        ? 'Уважаемый'
-        : guest.salutation_type === 'female'
-          ? 'Уважаемая'
-          : ''
-      : '';
-
-    name.textContent = [salutation, guestName].filter(Boolean).join(' ');
+    const nameParts = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean);
+    name.textContent = nameParts.join(' ') || 'Без имени';
     details.appendChild(name);
 
     if (guest.group_name || demoState?.group?.name) {
@@ -1096,9 +1099,44 @@ function renderGuests(guests) {
       status.textContent = 'Ожидаем ответ';
     }
 
-    row.append(details, status);
+    const actions = document.createElement('div');
+    actions.className = 'guest-row-actions';
+
+    const linkButton = document.createElement('button');
+    linkButton.type = 'button';
+    linkButton.className = 'guest-link-button';
+    linkButton.textContent = 'Ссылка';
+    linkButton.setAttribute('aria-label', 'Скопировать персональную ссылку для ' + name.textContent);
+    linkButton.addEventListener('click', () => copyGuestInvitationLink(guest.id, linkButton));
+    actions.appendChild(linkButton);
+
+    row.append(details, status, actions);
     list.appendChild(row);
   });
+}
+
+async function copyGuestInvitationLink(guestId, button) {
+  if (!contextId || !guestId) return;
+  const url = new URL('./demo-guest.html', window.location.href);
+  url.searchParams.set('context', contextId);
+  url.searchParams.set('guest', guestId);
+
+  const originalLabel = button.textContent;
+  try {
+    await navigator.clipboard.writeText(url.toString());
+    button.textContent = 'Скопировано';
+  } catch (error) {
+    const field = document.createElement('textarea');
+    field.value = url.toString();
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    const copied = document.execCommand('copy');
+    field.remove();
+    button.textContent = copied ? 'Скопировано' : 'Не скопировано';
+  }
+  window.setTimeout(() => { button.textContent = originalLabel; }, 1800);
 }
 
 function renderDashboard(state) {
@@ -1323,7 +1361,7 @@ function connectDemoSession() {
   }
 
   try {
-    const worker = new SharedWorker('./demo-worker.js?v=6', { name: 'eventflow-demo-v6' });
+    const worker = new SharedWorker('./demo-worker.js?v=7', { name: 'eventflow-demo-v7' });
     demoPort = worker.port;
 
     demoPort.onmessage = event => {
