@@ -217,6 +217,60 @@
       }
     }
 
+    .menu-description {
+      margin: 0 0 24px;
+      white-space: pre-line;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .menu-sections {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      text-align: inherit;
+    }
+
+    .menu-sections.layout-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .menu-section-title {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: normal;
+    }
+
+    .menu-section-items {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .menu-section-items li {
+      margin: 0 0 10px;
+      font-size: 17px;
+      line-height: 1.6;
+    }
+
+    .menu-section-item-description {
+      display: block;
+      margin-top: 3px;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+
+    .menu-sections[hidden],
+    .menu-description[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .menu-sections.layout-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .signature {
       margin-top: 90px;
       font-size: 24px;
@@ -465,6 +519,14 @@
             <ul class="dress-code-items" id="dress-code-items" hidden></ul>
           </div>
         </div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-menu" data-block-key="menu" hidden>
+      <section class="details menu">
+        <h2 id="menu-title" hidden></h2>
+        <p class="menu-description" id="menu-description" hidden></p>
+        <div class="menu-sections" id="menu-sections" hidden></div>
       </section>
     </section>
 
@@ -893,6 +955,107 @@
       updateBlockVisibility();
     }
 
+    // ОТОБРАЖЕНИЕ МЕНЮ
+
+    function renderMenu(content = {}, settings = {}) {
+      const block = document.getElementById('block-menu');
+      const isConfiguredVisible = !block.hidden;
+      const title = document.getElementById('menu-title');
+      const description = document.getElementById('menu-description');
+      const sectionsContainer = document.getElementById('menu-sections');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string'
+        ? content.title.trim()
+        : '';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      const descriptionText = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.textContent = descriptionText;
+      description.hidden = settings.show_description === false || !descriptionText;
+
+      const sections = Array.isArray(content.sections) ? content.sections : [];
+      sectionsContainer.replaceChildren();
+
+      sections.forEach(section => {
+        if (!section || typeof section !== 'object') return;
+
+        const sectionTitle = [section.title, section.name]
+          .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+        const rawItems = Array.isArray(section.items) ? section.items : [];
+        const items = rawItems.map(item => {
+          if (typeof item === 'string') {
+            return { name: item.trim(), description: '' };
+          }
+          if (!item || typeof item !== 'object') return null;
+
+          const name = [item.name, item.title, item.text]
+            .find(value => typeof value === 'string' && value.trim())?.trim() || '';
+          const itemDescription = typeof item.description === 'string'
+            ? item.description.trim()
+            : '';
+          return name || itemDescription
+            ? { name, description: itemDescription }
+            : null;
+        }).filter(Boolean);
+
+        if (!sectionTitle && items.length === 0) return;
+
+        const sectionElement = document.createElement('section');
+        sectionElement.className = 'menu-section';
+
+        if (sectionTitle) {
+          const heading = document.createElement('h3');
+          heading.className = 'menu-section-title';
+          heading.textContent = sectionTitle;
+          sectionElement.appendChild(heading);
+        }
+
+        if (items.length) {
+          const list = document.createElement('ul');
+          list.className = 'menu-section-items';
+
+          items.forEach(item => {
+            const listItem = document.createElement('li');
+            if (item.name) {
+              const name = document.createElement('span');
+              name.textContent = item.name;
+              listItem.appendChild(name);
+            }
+            if (item.description) {
+              const itemDescription = document.createElement('span');
+              itemDescription.className = 'menu-section-item-description';
+              itemDescription.textContent = item.description;
+              listItem.appendChild(itemDescription);
+            }
+            list.appendChild(listItem);
+          });
+
+          sectionElement.appendChild(list);
+        }
+
+        sectionsContainer.appendChild(sectionElement);
+      });
+
+      const hasDescription = !description.hidden;
+      const hasSections = sectionsContainer.children.length > 0;
+      const hasContent = hasDescription || hasSections;
+      sectionsContainer.hidden = !hasSections;
+
+      const layout = settings.layout === 'columns' ? 'columns' : 'stacked';
+      sectionsContainer.classList.toggle('layout-columns', layout === 'columns');
+
+      block.hidden = !isConfiguredVisible || !hasContent;
+      title.hidden = title.hidden || !hasContent;
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -1110,6 +1273,14 @@
         renderDressCode(
           dressCodeBlock?.content?.data || {},
           dressCodeBlock?.settings?.data || {}
+        );
+
+        const menuBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'menu')
+          : null;
+        renderMenu(
+          menuBlock?.content?.data || {},
+          menuBlock?.settings?.data || {}
         );
 
         renderGuests(invitationGuests);
