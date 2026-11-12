@@ -45,7 +45,7 @@ function createInitialState() {
     group: {
       id: "demo-group",
       name: "Гости новогоднего вечера",
-      greeting_style: "informal"
+      greeting_style: "respectful"
     },
 
     guests: [],
@@ -208,7 +208,7 @@ function addGuest(session, fields) {
     salutation_type: ["male", "female"].includes(fields.salutation_type)
       ? fields.salutation_type
       : "first_name",
-    greeting_style: fields.greeting_style === "respectful" ? "respectful" : "informal",
+    greeting_style: fields.greeting_style === "informal" ? "informal" : "respectful",
     role: "guest",
     group_name: String(fields.group_name || session.state.group.name || "").trim(),
     attendance: null,
