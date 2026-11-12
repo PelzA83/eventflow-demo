@@ -874,20 +874,15 @@
         return;
       }
 
+      // Компактный payload: QR хранит только идентификаторы и подтверждённых гостей.
+      // Названия, даты и персональные данные получаются по идентификаторам из базы.
       const payload = {
-        version: 1,
-        type: 'eventflow_invitation_demo',
-        event: {
-          id: state.event?.id || '',
-          title: state.event?.title || '',
-          date: state.event?.event_date || state.event?.date || '',
-          time: state.event?.event_time || ''
-        },
-        invitation_id: state.group?.id || '',
-        group_id: state.group?.id || '',
-        guests: confirmedGuests,
-        generated_at: state.updatedAt || new Date().toISOString(),
-        revision: Number(state.revision) || 0
+        v: 1,
+        t: 'ef',
+        e: state.event?.id || '',
+        i: state.group?.id || '',
+        g: confirmedGuests.map(guest => guest.id),
+        r: Number(state.revision) || 0
       };
 
       try {
