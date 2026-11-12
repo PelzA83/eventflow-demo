@@ -453,6 +453,47 @@ input:focus {
   .guest-form-footer button { width: 100%; }
 }
 
+
+/* Управление блоками приглашения */
+.blocks-panel { margin-bottom: 20px; }
+.blocks-description {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 18px;
+}
+.block-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-top: 1px solid #efede8;
+}
+.block-row:first-child { border-top: 0; }
+.block-row-main { min-width: 0; }
+.block-row-title { font-size: 13px; font-weight: 600; }
+.block-row-state { color: var(--muted); font-size: 11px; margin-top: 4px; }
+.block-row-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.block-control {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text);
+  min-width: 34px;
+  min-height: 34px;
+  padding: 6px 9px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.block-control:disabled { opacity: .35; cursor: not-allowed; }
+.block-visibility { min-width: 86px; }
+.block-visibility.is-hidden { color: var(--muted); background: #f7f5f0; }
+@media (max-width: 550px) {
+  .block-row { align-items: flex-start; }
+  .block-row-actions { flex-wrap: wrap; justify-content: flex-end; }
+}
+
 .guest-empty {
   padding: 24px 0;
   color: var(--muted);
@@ -572,6 +613,16 @@ input:focus {
       <div class="event-venue" id="eventVenue"></div>
     </section>
     <div class="message" id="dashboardMessage" role="status"></div>
+
+    <section class="panel blocks-panel">
+      <div class="panel-head">
+        <h2>Блоки приглашения</h2>
+      </div>
+      <p class="blocks-description">Включайте нужные разделы и меняйте их порядок. Изменения сразу отображаются в гостевом приглашении этой демосессии.</p>
+      <div id="invitationBlocksList" aria-live="polite">
+        <div class="guest-empty">Загружаем блоки приглашения…</div>
+      </div>
+    </section>
 
     <div class="panel guest-management-panel">
       <div class="panel-head">
@@ -745,6 +796,7 @@ function renderGuests(guests) {
 
 function renderDashboard(state) {
   demoState = state;
+  renderInvitationBlocks(Array.isArray(state.blocks) ? state.blocks : []);
   const event = state.event || {};
   const guests = Array.isArray(state.guests) ? state.guests : [];
 
@@ -785,6 +837,119 @@ function renderDashboard(state) {
   note.appendChild(caption);
 
   setDashboardMessage('');
+}
+
+const BLOCK_LABELS = {
+  greeting: 'Приветствие',
+  invitation_text: 'Текст приглашения',
+  couple_signature: 'Подпись',
+  event_info: 'Информация о мероприятии',
+  dress_code: 'Дресс-код',
+  menu: 'Меню',
+  rsvp: 'Подтверждение присутствия',
+  seating: 'План рассадки',
+  qr_code: 'QR-код'
+};
+
+function renderInvitationBlocks(blocks) {
+  const list = document.getElementById('invitationBlocksList');
+  list.replaceChildren();
+
+  const orderedBlocks = [...blocks].sort((a, b) =>
+    Number(a.sort_order || 0) - Number(b.sort_order || 0)
+  );
+
+  orderedBlocks.forEach((block, index) => {
+    const row = document.createElement('div');
+    row.className = 'block-row';
+
+    const main = document.createElement('div');
+    main.className = 'block-row-main';
+
+    const title = document.createElement('div');
+    title.className = 'block-row-title';
+    title.textContent = BLOCK_LABELS[block.block_key] || block.block_key;
+
+    const state = document.createElement('div');
+    state.className = 'block-row-state';
+    state.textContent = block.is_visible === false ? 'Скрыт в приглашении' : 'Включён';
+
+    main.append(title, state);
+
+    const actions = document.createElement('div');
+    actions.className = 'block-row-actions';
+
+    const visibility = document.createElement('button');
+    visibility.type = 'button';
+    visibility.className = 'block-control block-visibility' +
+      (block.is_visible === false ? ' is-hidden' : '');
+    visibility.textContent = block.is_visible === false ? 'Включить' : 'Скрыть';
+    visibility.setAttribute('aria-label',
+      (block.is_visible === false ? 'Включить блок ' : 'Скрыть блок ') +
+      (BLOCK_LABELS[block.block_key] || block.block_key)
+    );
+    visibility.addEventListener('click', () => {
+      sendBlockUpdate(block.block_key, {
+        is_visible: block.is_visible === false
+      });
+    });
+
+    const up = document.createElement('button');
+    up.type = 'button';
+    up.className = 'block-control';
+    up.textContent = '↑';
+    up.title = 'Переместить выше';
+    up.setAttribute('aria-label', 'Переместить выше');
+    up.disabled = index === 0;
+    up.addEventListener('click', () => moveInvitationBlock(index, -1));
+
+    const down = document.createElement('button');
+    down.type = 'button';
+    down.className = 'block-control';
+    down.textContent = '↓';
+    down.title = 'Переместить ниже';
+    down.setAttribute('aria-label', 'Переместить ниже');
+    down.disabled = index === orderedBlocks.length - 1;
+    down.addEventListener('click', () => moveInvitationBlock(index, 1));
+
+    actions.append(visibility, up, down);
+    row.append(main, actions);
+    list.appendChild(row);
+  });
+
+  if (orderedBlocks.length === 0) {
+    list.textContent = 'Блоки пока не настроены.';
+  }
+}
+
+function sendBlockUpdate(blockKey, patch) {
+  if (!demoPort || !demoState) {
+    setDashboardMessage('Нет подключения к демосессии. Обновите страницу.', true);
+    return;
+  }
+
+  demoPort.postMessage({
+    type: 'update-block',
+    blockKey,
+    patch
+  });
+}
+
+function moveInvitationBlock(index, direction) {
+  const blocks = [...(demoState?.blocks || [])].sort((a, b) =>
+    Number(a.sort_order || 0) - Number(b.sort_order || 0)
+  );
+  const targetIndex = index + direction;
+
+  if (targetIndex < 0 || targetIndex >= blocks.length) return;
+
+  const current = blocks[index];
+  const target = blocks[targetIndex];
+  const currentOrder = current.sort_order;
+  const targetOrder = target.sort_order;
+
+  sendBlockUpdate(current.block_key, { sort_order: targetOrder });
+  sendBlockUpdate(target.block_key, { sort_order: currentOrder });
 }
 
 function disconnectDemoSession() {
