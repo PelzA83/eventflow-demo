@@ -454,6 +454,23 @@ input:focus {
 }
 
 
+/* Редактирование данных мероприятия */
+.event-edit-panel { margin-bottom: 20px; }
+.event-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.event-edit-field { min-width: 0; }
+.event-edit-field.full { grid-column: 1 / -1; }
+.event-edit-field input { margin: 0; }
+.event-edit-panel .guest-form-footer { margin-top: 16px; }
+@media (max-width: 550px) {
+  .event-edit-grid { grid-template-columns: 1fr; }
+  .event-edit-field.full { grid-column: auto; }
+  .event-edit-panel .guest-form-footer button { width: 100%; }
+}
+
 /* Управление блоками приглашения */
 .blocks-panel { margin-bottom: 20px; }
 .blocks-description {
@@ -612,6 +629,42 @@ input:focus {
       <div class="event-date" id="eventDate"></div>
       <div class="event-venue" id="eventVenue"></div>
     </section>
+
+    <section class="panel event-edit-panel">
+      <div class="panel-head">
+        <h2>Данные мероприятия</h2>
+      </div>
+      <p class="blocks-description">Изменения сразу отобразятся в гостевом приглашении этой демосессии.</p>
+      <form id="eventForm">
+        <div class="event-edit-grid">
+          <div class="event-edit-field full">
+            <label for="eventEditTitle">Название мероприятия</label>
+            <input id="eventEditTitle" name="title" type="text" maxlength="160" placeholder="Название мероприятия">
+          </div>
+          <div class="event-edit-field">
+            <label for="eventEditDate">Дата</label>
+            <input id="eventEditDate" name="date" type="date">
+          </div>
+          <div class="event-edit-field">
+            <label for="eventEditTime">Время начала</label>
+            <input id="eventEditTime" name="time" type="time">
+          </div>
+          <div class="event-edit-field full">
+            <label for="eventEditVenueName">Место проведения</label>
+            <input id="eventEditVenueName" name="venue_name" type="text" maxlength="200" placeholder="Например, Загородный клуб">
+          </div>
+          <div class="event-edit-field full">
+            <label for="eventEditVenueAddress">Адрес</label>
+            <input id="eventEditVenueAddress" name="venue_address" type="text" maxlength="300" placeholder="Город, улица, дом">
+          </div>
+        </div>
+        <div class="guest-form-footer">
+          <button class="guest-action primary-action" type="submit">Сохранить данные</button>
+        </div>
+        <div class="guest-form-message" id="eventFormMessage" role="status"></div>
+      </form>
+    </section>
+
     <div class="message" id="dashboardMessage" role="status"></div>
 
     <section class="panel blocks-panel">
@@ -800,6 +853,18 @@ function renderDashboard(state) {
   const event = state.event || {};
   const guests = Array.isArray(state.guests) ? state.guests : [];
 
+  const eventFormValues = {
+    eventEditTitle: event.title || '',
+    eventEditDate: event.event_date || event.date || '',
+    eventEditTime: event.event_time ? event.event_time.slice(0, 5) : '',
+    eventEditVenueName: event.venue_name || '',
+    eventEditVenueAddress: event.venue_address || ''
+  };
+  Object.entries(eventFormValues).forEach(([id, value]) => {
+    const field = document.getElementById(id);
+    if (document.activeElement !== field) field.value = value;
+  });
+
   setText('eventTitle', event.title || 'Мероприятие без названия');
   const date = formatEventDate(event.event_date || event.date || '');
   const time = event.event_time ? event.event_time.slice(0, 5) : '';
@@ -851,6 +916,16 @@ const BLOCK_LABELS = {
   qr_code: 'QR-код'
 };
 
+function hasBlockContent(value) {
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number' || typeof value === 'boolean') return true;
+  if (Array.isArray(value)) return value.some(hasBlockContent);
+  if (value && typeof value === 'object') {
+    return Object.values(value).some(hasBlockContent);
+  }
+  return false;
+}
+
 function renderInvitationBlocks(blocks) {
   const list = document.getElementById('invitationBlocksList');
   list.replaceChildren();
@@ -872,7 +947,14 @@ function renderInvitationBlocks(blocks) {
 
     const state = document.createElement('div');
     state.className = 'block-row-state';
-    state.textContent = block.is_visible === false ? 'Скрыт в приглашении' : 'Включён';
+    if (block.is_visible === false) {
+      state.textContent = 'Скрыт настройками организатора';
+    } else if (['dress_code', 'menu', 'seating'].includes(block.block_key) &&
+      !hasBlockContent(block.content?.data || {})) {
+      state.textContent = 'Включён, но не заполнен';
+    } else {
+      state.textContent = 'Включён';
+    }
 
     main.append(title, state);
 
@@ -920,6 +1002,18 @@ function renderInvitationBlocks(blocks) {
   if (orderedBlocks.length === 0) {
     list.textContent = 'Блоки пока не настроены.';
   }
+}
+
+function sendEventUpdate(fields) {
+  if (!demoPort || !demoState) {
+    document.getElementById('eventFormMessage').textContent =
+      'Нет подключения к демосессии. Обновите страницу.';
+    return;
+  }
+
+  demoPort.postMessage({ type: 'update-event', fields });
+  document.getElementById('eventFormMessage').textContent =
+    'Данные мероприятия обновлены.';
 }
 
 function sendBlockUpdate(blockKey, patch) {
@@ -1016,6 +1110,19 @@ function toggleGuestForm(show) {
     document.getElementById('guestFormMessage').textContent = '';
   }
 }
+
+document.getElementById('eventForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const fields = {
+    title: document.getElementById('eventEditTitle').value.trim(),
+    date: document.getElementById('eventEditDate').value,
+    event_date: document.getElementById('eventEditDate').value,
+    event_time: document.getElementById('eventEditTime').value,
+    venue_name: document.getElementById('eventEditVenueName').value.trim(),
+    venue_address: document.getElementById('eventEditVenueAddress').value.trim()
+  };
+  sendEventUpdate(fields);
+});
 
 document.getElementById('guestForm').addEventListener('submit', event => {
   event.preventDefault();
