@@ -146,6 +146,77 @@
       display: none;
     }
 
+    .dress-code-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    .dress-code-content.layout-image-left,
+    .dress-code-content.layout-image-right {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .dress-code-content.layout-image-right {
+      flex-direction: row-reverse;
+    }
+
+    .dress-code-image {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      max-height: 360px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .dress-code-content.layout-image-left .dress-code-image,
+    .dress-code-content.layout-image-right .dress-code-image {
+      width: 42%;
+      flex: 0 0 42%;
+    }
+
+    .dress-code-text {
+      min-width: 0;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .dress-code-description {
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .dress-code-items {
+      margin: 18px 0 0;
+      padding-left: 22px;
+      text-align: left;
+    }
+
+    .dress-code-items[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .dress-code-content.layout-image-left,
+      .dress-code-content.layout-image-right {
+        flex-direction: column;
+        align-items: center;
+        text-align: inherit;
+      }
+
+      .dress-code-content.layout-image-left .dress-code-image,
+      .dress-code-content.layout-image-right .dress-code-image {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+
     .signature {
       margin-top: 90px;
       font-size: 24px;
@@ -379,6 +450,19 @@
           <div class="event-info-item">
             <span class="event-info-label">Место проведения</span>
             <span class="event-info-value" id="event-venue">Информация появится позже</span>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-dress-code" data-block-key="dress_code">
+      <section class="details dress-code">
+        <h2 id="dress-code-title">Дресс-код</h2>
+        <div class="dress-code-content" id="dress-code-content">
+          <img class="dress-code-image" id="dress-code-image" alt="" hidden>
+          <div class="dress-code-text">
+            <p class="dress-code-description" id="dress-code-description"></p>
+            <ul class="dress-code-items" id="dress-code-items" hidden></ul>
           </div>
         </div>
       </section>
@@ -709,6 +793,93 @@
       });
     }
 
+    // ОТОБРАЖЕНИЕ ДРЕСС-КОДА
+
+    function renderDressCode(content = {}, settings = {}) {
+      const block = document.getElementById('block-dress-code');
+      const title = document.getElementById('dress-code-title');
+      const contentContainer = document.getElementById('dress-code-content');
+      const image = document.getElementById('dress-code-image');
+      const description = document.getElementById('dress-code-description');
+      const itemsContainer = document.getElementById('dress-code-items');
+
+      const alignment = ['left', 'center', 'right'].includes(settings.alignment)
+        ? settings.alignment
+        : 'center';
+      block.style.textAlign = alignment;
+
+      const titleText = typeof content.title === 'string' && content.title.trim()
+        ? content.title.trim()
+        : 'Дресс-код';
+      title.textContent = titleText;
+      title.hidden = settings.show_title === false || !titleText;
+
+      description.textContent = typeof content.description === 'string'
+        ? content.description.trim()
+        : '';
+      description.hidden = !description.textContent;
+
+      const items = Array.isArray(content.items) ? content.items : [];
+      itemsContainer.replaceChildren();
+
+      items.forEach(item => {
+        const itemText = typeof item === 'string'
+          ? item.trim()
+          : item && typeof item === 'object'
+            ? [item.text, item.label, item.name]
+                .find(value => typeof value === 'string' && value.trim())?.trim() || ''
+            : '';
+
+        if (!itemText) return;
+
+        const listItem = document.createElement('li');
+        listItem.textContent = itemText;
+        itemsContainer.appendChild(listItem);
+      });
+
+      itemsContainer.hidden = itemsContainer.children.length === 0;
+
+      const imageValue = typeof content.image === 'string'
+        ? content.image
+        : content.image && typeof content.image === 'object'
+          ? content.image.url || content.image.src || ''
+          : '';
+      const imageUrl = typeof imageValue === 'string' ? imageValue.trim() : '';
+
+      image.hidden = true;
+      image.removeAttribute('src');
+      image.alt = typeof content.image?.alt === 'string'
+        ? content.image.alt
+        : 'Иллюстрация дресс-кода';
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute('src');
+      };
+
+      if (settings.show_image !== false && imageUrl) {
+        try {
+          const parsedUrl = new URL(imageUrl, window.location.href);
+          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+            image.src = parsedUrl.href;
+            image.hidden = false;
+          }
+        } catch (error) {
+          console.warn('EventFlow: некорректная ссылка изображения дресс-кода');
+        }
+      }
+
+      const layout = ['image-left', 'image-right'].includes(settings.layout)
+        ? settings.layout
+        : 'stacked';
+      contentContainer.classList.remove(
+        'layout-image-left',
+        'layout-image-right'
+      );
+      if (layout !== 'stacked') {
+        contentContainer.classList.add('layout-' + layout);
+      }
+    }
+
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
 
     function renderGuests(guests) {
@@ -918,6 +1089,14 @@
           event,
           eventInfoBlock?.content?.data || {},
           eventInfoBlock?.settings?.data || {}
+        );
+
+        const dressCodeBlock = Array.isArray(data.blocks)
+          ? data.blocks.find(block => block.block_key === 'dress_code')
+          : null;
+        renderDressCode(
+          dressCodeBlock?.content?.data || {},
+          dressCodeBlock?.settings?.data || {}
         );
 
         renderGuests(invitationGuests);
