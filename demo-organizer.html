@@ -31,10 +31,14 @@ body {
 
 button, input { font: inherit; }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 .page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 30px 18px;
 }
@@ -1372,6 +1376,9 @@ document.getElementById('guestForm').addEventListener('submit', event => {
 document.querySelectorAll('[data-section]').forEach(button => {
   button.addEventListener('click', () => setDashboardSection(button.dataset.section));
 });
+
+// Синхронизируем начальное состояние навигации и содержимого до загрузки данных.
+setDashboardSection('event');
 
 window.addEventListener('pagehide', disconnectDemoSession);
 connectDemoSession();
