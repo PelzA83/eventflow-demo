@@ -256,7 +256,6 @@
             const target = new URL("demo-guest.html", location.href);
             target.searchParams.set("view", "guest");
             target.searchParams.set("context", id);
-        target.searchParams.set("product", productType);
             target.searchParams.set("product", productType);
 
             const invitations = Array.isArray(message.state?.invitations)
