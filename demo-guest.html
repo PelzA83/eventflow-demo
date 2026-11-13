@@ -1244,7 +1244,7 @@
         if (index < names.length - 1) {
           const separator = document.createElement('span');
           separator.className = 'greeting-separator';
-          separator.textContent = index === names.length - 2 ? '\u00A0и\u00A0' : ', ';
+          separator.textContent = index === names.length - 2 ? ' и ' : ', ';
           namesContainer.appendChild(separator);
         }
       });
