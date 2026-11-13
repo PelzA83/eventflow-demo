@@ -24,7 +24,7 @@ function createInitialState() {
   const now = new Date().toISOString();
 
   return {
-    schema_version: 1,
+    schema_version: 2,
     revision: 0,
     updatedAt: now,
 
@@ -50,6 +50,7 @@ function createInitialState() {
       greeting_style: "respectful"
     },
 
+    invitations: [],
     guests: [],
 
     blocks: BLOCK_KEYS.map((block_key, index) => {
@@ -135,10 +136,62 @@ function createInitialState() {
   };
 }
 
+function createRecordId(prefix) {
+  const value = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12);
+
+  return prefix + "-" + value;
+}
+
+function createInvitation(state, fields = {}) {
+  const now = new Date().toISOString();
+  const invitation = {
+    id: createRecordId("inv"),
+    internal_name: String(fields.internal_name || "").trim(),
+    status: "active",
+    qr_revision: 0,
+    created_at: now,
+    updated_at: now
+  };
+
+  state.invitations.push(invitation);
+  return invitation;
+}
+
+// Совместимость со старой структурой: каждый прежний гость получает
+// отдельное приглашение. Текстовый group_name не объединяет записи.
+function ensureInvitationStructure(state) {
+  if (!Array.isArray(state.invitations)) state.invitations = [];
+  if (!Array.isArray(state.guests)) state.guests = [];
+
+  for (const guest of state.guests) {
+    const linkedInvitation = state.invitations.find(
+      invitation => invitation.id === guest.invitation_id
+    );
+
+    if (!linkedInvitation) {
+      const invitation = createInvitation(state);
+      guest.invitation_id = invitation.id;
+    }
+
+    if (!["active", "excluded"].includes(guest.participant_status)) {
+      guest.participant_status = "active";
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(guest, "excluded_at")) {
+      guest.excluded_at = null;
+    }
+  }
+
+  return state;
+}
+
 function getSession(contextId) {
   if (!sessions.has(contextId)) {
+    const state = ensureInvitationStructure(createInitialState());
     sessions.set(contextId, {
-      state: createInitialState(),
+      state,
       ports: new Set()
     });
   }
@@ -225,12 +278,29 @@ function addGuest(session, fields) {
   const patronymic = String(fields.patronymic || "").trim();
   if (!firstName) return false;
 
-  const guestId = typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : "guest-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  const requestedInvitationId = String(fields.invitation_id || "").trim();
+  let invitation = requestedInvitationId
+    ? session.state.invitations.find(item => item.id === requestedInvitationId)
+    : null;
+
+  // Без указанного invitation_id создаётся новое индивидуальное приглашение.
+  // Добавление в существующее приглашение возможно только по его точному ID.
+  if (requestedInvitationId && !invitation) return false;
+  if (!invitation) {
+    invitation = createInvitation(session.state, {
+      internal_name: fields.internal_name
+    });
+  } else {
+    invitation.updated_at = new Date().toISOString();
+  }
+
+  const guestId = createRecordId("guest");
 
   session.state.guests.push({
     id: guestId,
+    invitation_id: invitation.id,
+    participant_status: "active",
+    excluded_at: null,
     first_name: firstName,
     last_name: lastName,
     patronymic,
