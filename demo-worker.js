@@ -13,6 +13,7 @@ const BLOCK_KEYS = [
   "event_info",
   "dress_code",
   "menu",
+  "gifts_wishes",
   "rsvp",
   "seating",
   "qr_code"
@@ -70,15 +71,33 @@ function createInitialState() {
           ]
         },
         couple_signature: {},
-        dress_code: {},
-        menu: {},
+        dress_code: {
+          title: "Дресс-код",
+          description: "Праздничный образ, в котором вам будет комфортно провести этот день. Будем рады видеть вас в мягкой, гармоничной палитре.",
+          items: ["Молочные и сливочные оттенки", "Песочный, бежевый и мягкий серый", "Небольшие акценты в природных тонах"]
+        },
+        menu: {
+          title: "Праздничное меню",
+          description: "В течение вечера вас ждут любимые вкусы, сезонные продукты и угощения для хорошего настроения.",
+          sections: [
+            { title: "Лёгкие закуски", items: [{ name: "Сезонные овощи и зелень" }, { name: "Сыры и небольшие закуски" }] },
+            { title: "Горячее", items: [{ name: "Основное блюдо на выбор" }, { name: "Гарнир и сезонные дополнения" }] },
+            { title: "Десерты", items: [{ name: "Праздничный торт" }, { name: "Фрукты и сладости" }] }
+          ]
+        },
+        gifts_wishes: {},
         rsvp: {},
-        seating: {},
+        seating: {
+          title: "Ваше место на празднике",
+          description: "Найдите свой стол на общей схеме зала — персональное место указано выше."
+        },
         qr_code: {}
       };
 
-      const isVisible = ["greeting", "invitation_text", "event_info", "rsvp"]
-        .includes(block_key);
+      const isVisible = [
+        "greeting", "invitation_text", "event_info",
+        "dress_code", "menu", "gifts_wishes", "rsvp", "seating"
+      ].includes(block_key);
 
       const settingsByBlock = block_key === "greeting"
         ? { personalization: "real" }
