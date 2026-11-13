@@ -654,6 +654,17 @@ input:focus {
   cursor: pointer;
 }
 .guest-link-button:hover { background: #f7f5f0; }
+.guest-edit-button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #f7f5f0;
+  color: var(--text);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.guest-edit-button:hover { background: #efede7; }
 
 .status {
   font-size: 11px;
@@ -875,8 +886,8 @@ input:focus {
       </div>
 
       <div class="guest-form-panel" id="guestFormPanel">
-        <h3 class="guest-form-title">Новый гость</h3>
-        <p class="guest-form-description">Заполните данные приглашённого. Пока это предварительный макет формы: сохранение в базу подключим следующим этапом.</p>
+        <h3 class="guest-form-title" id="guestFormTitle">Новый гость</h3>
+        <p class="guest-form-description" id="guestFormDescription">Заполните данные приглашённого. Изменения сразу обновятся в его персональном приглашении.</p>
         <form id="guestForm">
           <div class="guest-form-grid">
             <div class="guest-form-field full">
@@ -907,7 +918,7 @@ input:focus {
           </div>
           <div class="guest-form-footer">
             <button class="guest-action" type="button" onclick="toggleGuestForm(false)">Отмена</button>
-            <button class="guest-action primary-action" type="submit">Добавить гостя</button>
+            <button class="guest-action primary-action" id="guestFormSubmit" type="submit">Добавить гостя</button>
           </div>
           <div class="guest-form-message" id="guestFormMessage" role="status"></div>
         </form>
@@ -1000,6 +1011,7 @@ let demoPort = null;
 let demoState = null;
 let dashboardGuests = [];
 let currentGuestFilter = 'all';
+let editingGuestId = null;
 
 function setDashboardSection(section) {
   const allowedSections = [
@@ -1109,6 +1121,14 @@ function renderGuests(guests) {
     linkButton.setAttribute('aria-label', 'Скопировать персональную ссылку для ' + name.textContent);
     linkButton.addEventListener('click', () => copyGuestInvitationLink(guest.id, linkButton));
     actions.appendChild(linkButton);
+
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'guest-edit-button';
+    editButton.textContent = 'Редактировать';
+    editButton.setAttribute('aria-label', 'Редактировать данные гостя ' + name.textContent);
+    editButton.addEventListener('click', () => editGuest(guest.id));
+    actions.appendChild(editButton);
 
     row.append(details, status, actions);
     list.appendChild(row);
@@ -1408,11 +1428,37 @@ function toggleGuestForm(show) {
   panel.classList.toggle('open', shouldShow);
   toggleButton.setAttribute('aria-expanded', String(shouldShow));
 
-  if (shouldShow) document.getElementById('newGuestFullName').focus();
-  else {
+  if (shouldShow) {
+    document.getElementById('newGuestFullName').focus();
+  } else {
     document.getElementById('guestForm').reset();
     document.getElementById('guestFormMessage').textContent = '';
+    editingGuestId = null;
+    document.getElementById('guestFormTitle').textContent = 'Новый гость';
+    document.getElementById('guestFormDescription').textContent =
+      'Заполните данные приглашённого. Изменения сразу обновятся в его персональном приглашении.';
+    document.getElementById('guestFormSubmit').textContent = 'Добавить гостя';
   }
+}
+
+function editGuest(guestId) {
+  const guest = dashboardGuests.find(item => item.id === guestId);
+  if (!guest) return;
+
+  editingGuestId = guest.id;
+  document.getElementById('newGuestFullName').value =
+    [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+  document.getElementById('newGuestGroup').value = guest.group_name || '';
+  document.getElementById('newGuestSalutation').value = guest.salutation_type || 'male';
+  document.getElementById('newGuestGreetingStyle').value = guest.greeting_style || 'respectful';
+  updateSalutationAvailability();
+
+  document.getElementById('guestFormTitle').textContent = 'Редактирование гостя';
+  document.getElementById('guestFormDescription').textContent =
+    'Измените данные приглашённого. Персональная ссылка и сохранённый ответ RSVP останутся прежними.';
+  document.getElementById('guestFormSubmit').textContent = 'Сохранить изменения';
+  document.getElementById('guestFormMessage').textContent = '';
+  toggleGuestForm(true);
 }
 
 document.getElementById('newGuestGreetingStyle').addEventListener('change', updateSalutationAvailability);
@@ -1459,9 +1505,18 @@ document.getElementById('guestForm').addEventListener('submit', event => {
     greeting_style: document.getElementById('newGuestGreetingStyle').value
   };
 
-  demoPort.postMessage({ type: 'add-guest', fields });
-  message.textContent = 'Гость добавлен в список демосессии.';
-  document.getElementById('guestForm').reset();
+  if (editingGuestId) {
+    demoPort.postMessage({
+      type: 'update-guest',
+      guestId: editingGuestId,
+      patch: fields
+    });
+    message.textContent = 'Данные гостя обновлены.';
+  } else {
+    demoPort.postMessage({ type: 'add-guest', fields });
+    message.textContent = 'Гость добавлен в список демосессии.';
+  }
+
   toggleGuestForm(false);
 });
 
