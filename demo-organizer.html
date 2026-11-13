@@ -576,6 +576,62 @@ input:focus {
 }
 
 
+
+.block-editor-toggle { min-width: 86px; }
+.block-editor {
+  width: 100%;
+  margin: 8px 0 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fcfbf8;
+}
+.block-editor[hidden] { display: none; }
+.block-editor-title {
+  margin: 0 0 14px;
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+}
+.block-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.block-editor-field { min-width: 0; }
+.block-editor-field.full { grid-column: 1 / -1; }
+.block-editor-field label { margin-bottom: 6px; }
+.block-editor-field input,
+.block-editor-field textarea,
+.block-editor-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 11px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.block-editor-field textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+.block-editor-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font-size: 12px;
+}
+.block-editor-check input { width: auto; }
+.block-editor-help { color: var(--muted); font-size: 11px; line-height: 1.5; margin-top: 5px; }
+.block-editor-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.block-editor-actions .guest-action { padding: 9px 13px; }
+.block-editor-note { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
+@media (max-width: 550px) {
+  .block-editor { padding: 14px; }
+  .block-editor-grid { grid-template-columns: 1fr; }
+  .block-editor-field.full { grid-column: auto; }
+}
+
 /* Навигация по разделам демопульта */
 .dashboard { max-width: 1200px; }
 .dashboard-shell {
@@ -1537,10 +1593,214 @@ function hasBlockContent(value) {
   return false;
 }
 
+const BLOCK_EDITOR_SCHEMAS = {
+  greeting: {
+    content: [
+      { key: 'intro_text', label: 'Текст перед именами', type: 'textarea', full: true },
+      { key: 'additional_text', label: 'Дополнительный текст', type: 'textarea', full: true }
+    ],
+    settings: [
+      { key: 'personalization', label: 'Персонализация имён', type: 'select', options: [['real','Имена из списка гостей'],['examples','Демонстрационные имена'],['none','Без имён']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'show_event_date', label: 'Показывать дату в приветствии', type: 'check', default: true }
+    ]
+  },
+  invitation_text: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'paragraphs', label: 'Текст приглашения', type: 'paragraphs', full: true, help: 'Каждый абзац — с новой строки.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'text_style', label: 'Стиль текста', type: 'select', options: [['normal','Обычный'],['large','Крупный'],['italic','Курсив']] },
+      { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true }
+    ]
+  },
+  couple_signature: {
+    content: [
+      { key: 'text', label: 'Основная подпись', type: 'text', full: true },
+      { key: 'subtitle', label: 'Дополнительная строка', type: 'text', full: true }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'text_style', label: 'Стиль', type: 'select', options: [['normal','Обычный'],['italic','Курсив'],['large','Крупный']] },
+      { key: 'show_subtitle', label: 'Показывать дополнительную строку', type: 'check', default: true }
+    ]
+  },
+  event_info: {
+    content: [
+      { key: 'title', label: 'Заголовок блока', type: 'text', full: true },
+      { key: 'items', label: 'Порядок и подписи данных', type: 'eventItems', full: true, help: 'Одна строка на пункт: date, time, venue или address | подпись. Например: time | Начало в' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Компоновка', type: 'select', options: [['normal','Обычная'],['compact','Компактная']] },
+      { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
+      { key: 'show_labels', label: 'Показывать подписи', type: 'check', default: true }
+    ]
+  },
+  dress_code: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'description', label: 'Описание', type: 'textarea', full: true },
+      { key: 'items', label: 'Пункты дресс-кода', type: 'lines', full: true, help: 'Каждый пункт — с новой строки.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Расположение изображения', type: 'select', options: [['stacked','Изображение сверху'],['image-left','Изображение слева'],['image-right','Изображение справа']] },
+      { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
+      { key: 'show_image', label: 'Показывать изображение, если оно добавлено', type: 'check', default: true }
+    ]
+  },
+  menu: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'description', label: 'Описание', type: 'textarea', full: true },
+      { key: 'sections', label: 'Разделы и блюда', type: 'menuSections', full: true, help: 'Формат: Название раздела: блюдо 1; блюдо 2. Каждый раздел — с новой строки.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Компоновка', type: 'select', options: [['stacked','Один под другим'],['columns','Колонки']] },
+      { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
+      { key: 'show_description', label: 'Показывать описание', type: 'check', default: true }
+    ]
+  },
+  seating: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'description', label: 'Описание', type: 'textarea', full: true },
+      { key: 'items', label: 'Дополнительные пункты', type: 'lines', full: true, help: 'Каждый пункт — с новой строки.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Расположение схемы', type: 'select', options: [['stacked','Сверху'],['image-left','Слева'],['image-right','Справа']] },
+      { key: 'show_image', label: 'Показывать схему, если она добавлена', type: 'check', default: true }
+    ]
+  }
+};
+
+function editorValue(data, field) {
+  const value = data?.[field.key];
+  if (field.type === 'check') return typeof value === 'boolean' ? value : field.default !== false;
+  if (field.type === 'lines') return Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item?.text || item?.label || item?.name || '').filter(Boolean).join('\n') : '';
+  if (field.type === 'paragraphs') return Array.isArray(value) ? value.join('\n\n') : '';
+  if (field.type === 'eventItems') return Array.isArray(value) ? value.map(item => item.type + ' | ' + (item.label || '')).join('\n') : '';
+  if (field.type === 'menuSections') return Array.isArray(value) ? value.map(section => {
+    const dishes = (section.items || []).map(item => typeof item === 'string' ? item : item?.name || item?.title || '').filter(Boolean);
+    return (section.title || section.name || 'Раздел') + (dishes.length ? ': ' + dishes.join('; ') : '');
+  }).join('\n') : '';
+  return value == null ? '' : String(value);
+}
+
+function createBlockEditorField(field, data, part) {
+  const wrap = document.createElement('div');
+  wrap.className = 'block-editor-field' + (field.full ? ' full' : '');
+  if (field.type === 'check') {
+    const label = document.createElement('label');
+    label.className = 'block-editor-check';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = editorValue(data, field);
+    input.dataset.part = part;
+    input.dataset.key = field.key;
+    label.append(input, document.createTextNode(field.label));
+    wrap.appendChild(label);
+    return wrap;
+  }
+  const label = document.createElement('label');
+  label.textContent = field.label;
+  const input = field.type === 'textarea' || ['lines','paragraphs','eventItems','menuSections'].includes(field.type)
+    ? document.createElement('textarea')
+    : field.type === 'select' ? document.createElement('select') : document.createElement('input');
+  if (field.type === 'select') {
+    field.options.forEach(([value, caption]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = caption;
+      input.appendChild(option);
+    });
+  } else if (input.tagName === 'INPUT') {
+    input.type = 'text';
+    input.maxLength = 1000;
+  }
+  input.value = editorValue(data, field);
+  input.dataset.part = part;
+  input.dataset.key = field.key;
+  if (field.help) {
+    const help = document.createElement('div');
+    help.className = 'block-editor-help';
+    help.textContent = field.help;
+    wrap.append(label, input, help);
+  } else {
+    wrap.append(label, input);
+  }
+  return wrap;
+}
+
+function buildBlockEditor(block) {
+  const schema = BLOCK_EDITOR_SCHEMAS[block.block_key];
+  const editor = document.createElement('div');
+  editor.className = 'block-editor';
+  const heading = document.createElement('h3');
+  heading.className = 'block-editor-title';
+  heading.textContent = 'Настройки блока';
+  const grid = document.createElement('div');
+  grid.className = 'block-editor-grid';
+  const contentData = block.content?.data || {};
+  const settingsData = block.settings?.data || {};
+  schema.content.forEach(field => grid.appendChild(createBlockEditorField(field, contentData, 'content')));
+  schema.settings.forEach(field => grid.appendChild(createBlockEditorField(field, settingsData, 'settings')));
+  const note = document.createElement('p');
+  note.className = 'block-editor-note';
+  note.textContent = 'Изменения сразу появятся в гостевом приглашении этой демосессии.';
+  const actions = document.createElement('div');
+  actions.className = 'block-editor-actions';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'guest-action';
+  cancel.textContent = 'Отмена';
+  cancel.addEventListener('click', () => editor.remove());
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'guest-action primary-action';
+  save.textContent = 'Сохранить настройки';
+  save.addEventListener('click', () => {
+    const content = JSON.parse(JSON.stringify(contentData));
+    const settings = JSON.parse(JSON.stringify(settingsData));
+    editor.querySelectorAll('[data-part][data-key]').forEach(input => {
+      const target = input.dataset.part === 'content' ? content : settings;
+      const key = input.dataset.key;
+      const field = [...schema.content, ...schema.settings].find(item => item.key === key && (schema.content.includes(item) ? 'content' : 'settings') === input.dataset.part);
+      if (!field) return;
+      if (field.type === 'check') target[key] = input.checked;
+      else if (field.type === 'lines') target[key] = input.value.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
+      else if (field.type === 'paragraphs') target[key] = input.value.split(/\n\s*\n|\r?\n/).map(value => value.trim()).filter(Boolean);
+      else if (field.type === 'eventItems') {
+        target[key] = input.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+          const parts = line.split('|');
+          return { type: parts[0].trim(), label: (parts.slice(1).join('|') || '').trim() };
+        }).filter(item => ['date','time','venue','address'].includes(item.type));
+      } else if (field.type === 'menuSections') {
+        target[key] = input.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+          const parts = line.split(':');
+          return { title: parts.shift().trim(), items: parts.join(':').split(';').map(name => name.trim()).filter(Boolean).map(name => ({ name })) };
+        });
+      } else target[key] = input.value.trim();
+    });
+    sendBlockUpdate(block.block_key, {
+      content: { schema_version: block.content?.schema_version || 1, data: content },
+      settings: { schema_version: block.settings?.schema_version || 1, data: settings }
+    });
+    editor.remove();
+  });
+  actions.append(cancel, save);
+  editor.append(heading, grid, note, actions);
+  return editor;
+}
+
 function renderInvitationBlocks(blocks) {
   const list = document.getElementById('invitationBlocksList');
   list.replaceChildren();
-
   const orderedBlocks = [...blocks].sort((a, b) =>
     Number(a.sort_order || 0) - Number(b.sort_order || 0)
   );
@@ -1548,71 +1808,63 @@ function renderInvitationBlocks(blocks) {
   orderedBlocks.forEach((block, index) => {
     const row = document.createElement('div');
     row.className = 'block-row';
-
     const main = document.createElement('div');
     main.className = 'block-row-main';
-
     const title = document.createElement('div');
     title.className = 'block-row-title';
     title.textContent = BLOCK_LABELS[block.block_key] || block.block_key;
-
     const state = document.createElement('div');
     state.className = 'block-row-state';
-    if (block.is_visible === false) {
-      state.textContent = 'Скрыт настройками организатора';
-    } else if (['dress_code', 'menu', 'seating'].includes(block.block_key) &&
-      !hasBlockContent(block.content?.data || {})) {
-      state.textContent = 'Включён, но не заполнен';
-    } else {
-      state.textContent = 'Включён';
-    }
-
+    if (block.is_visible === false) state.textContent = 'Скрыт настройками организатора';
+    else if (['dress_code', 'menu', 'seating'].includes(block.block_key) && !hasBlockContent(block.content?.data || {})) state.textContent = 'Включён, но не заполнен';
+    else state.textContent = 'Включён';
     main.append(title, state);
 
     const actions = document.createElement('div');
     actions.className = 'block-row-actions';
+    if (BLOCK_EDITOR_SCHEMAS[block.block_key]) {
+      const configure = document.createElement('button');
+      configure.type = 'button';
+      configure.className = 'block-control block-editor-toggle';
+      configure.textContent = 'Настроить';
+      configure.addEventListener('click', () => {
+        const existing = row.nextElementSibling;
+        if (existing?.classList.contains('block-editor')) {
+          existing.remove();
+          return;
+        }
+        const editor = buildBlockEditor(block);
+        row.after(editor);
+      });
+      actions.appendChild(configure);
+    }
 
     const visibility = document.createElement('button');
     visibility.type = 'button';
-    visibility.className = 'block-control block-visibility' +
-      (block.is_visible === false ? ' is-hidden' : '');
+    visibility.className = 'block-control block-visibility' + (block.is_visible === false ? ' is-hidden' : '');
     visibility.textContent = block.is_visible === false ? 'Включить' : 'Скрыть';
-    visibility.setAttribute('aria-label',
-      (block.is_visible === false ? 'Включить блок ' : 'Скрыть блок ') +
-      (BLOCK_LABELS[block.block_key] || block.block_key)
-    );
-    visibility.addEventListener('click', () => {
-      sendBlockUpdate(block.block_key, {
-        is_visible: block.is_visible === false
-      });
-    });
+    visibility.setAttribute('aria-label', (block.is_visible === false ? 'Включить блок ' : 'Скрыть блок ') + (BLOCK_LABELS[block.block_key] || block.block_key));
+    visibility.addEventListener('click', () => sendBlockUpdate(block.block_key, { is_visible: block.is_visible === false }));
 
     const up = document.createElement('button');
-    up.type = 'button';
-    up.className = 'block-control';
-    up.textContent = '↑';
-    up.title = 'Переместить выше';
-    up.setAttribute('aria-label', 'Переместить выше');
-    up.disabled = index === 0;
+    up.type = 'button'; up.className = 'block-control'; up.textContent = '↑'; up.title = 'Переместить выше'; up.disabled = index === 0;
     up.addEventListener('click', () => moveInvitationBlock(index, -1));
-
     const down = document.createElement('button');
-    down.type = 'button';
-    down.className = 'block-control';
-    down.textContent = '↓';
-    down.title = 'Переместить ниже';
-    down.setAttribute('aria-label', 'Переместить ниже');
-    down.disabled = index === orderedBlocks.length - 1;
+    down.type = 'button'; down.className = 'block-control'; down.textContent = '↓'; down.title = 'Переместить ниже'; down.disabled = index === orderedBlocks.length - 1;
     down.addEventListener('click', () => moveInvitationBlock(index, 1));
-
     actions.append(visibility, up, down);
     row.append(main, actions);
     list.appendChild(row);
+
+    if (!BLOCK_EDITOR_SCHEMAS[block.block_key]) {
+      const note = document.createElement('p');
+      note.className = 'block-editor-note';
+      note.textContent = 'Содержимое этого раздела пока формируется демонстрационным шаблоном. Доступно включение, скрытие и изменение порядка.';
+      list.appendChild(note);
+    }
   });
 
-  if (orderedBlocks.length === 0) {
-    list.textContent = 'Блоки пока не настроены.';
-  }
+  if (!orderedBlocks.length) list.textContent = 'Блоки пока не настроены.';
 }
 
 function sendEventUpdate(fields) {
