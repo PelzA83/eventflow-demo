@@ -1322,6 +1322,7 @@ const BLOCK_LABELS = {
   event_info: 'Информация о мероприятии',
   dress_code: 'Дресс-код',
   menu: 'Меню',
+  gifts_wishes: 'Подарки и пожелания',
   rsvp: 'Подтверждение присутствия',
   seating: 'План рассадки',
   qr_code: 'QR-код'
@@ -1480,7 +1481,7 @@ function connectDemoSession() {
   }
 
   try {
-    const worker = new SharedWorker('./demo-worker.js?v=10', { name: 'eventflow-demo-v10' });
+    const worker = new SharedWorker('./demo-worker.js?v=11', { name: 'eventflow-demo-v11' });
     demoPort = worker.port;
 
     demoPort.onmessage = event => {
