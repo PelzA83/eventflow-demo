@@ -240,11 +240,11 @@
             target.searchParams.set("view", "guest");
             target.searchParams.set("context", id);
 
-            const guests = Array.isArray(message.state?.guests)
-              ? message.state.guests
+            const invitations = Array.isArray(message.state?.invitations)
+              ? message.state.invitations
               : [];
-            const firstGuest = guests[0];
-            if (firstGuest?.id) target.searchParams.set("guest", firstGuest.id);
+            const firstInvitation = invitations.find(item => item.status === "active");
+            if (firstInvitation?.id) target.searchParams.set("invitation", firstInvitation.id);
 
             guestWindow.location.replace(target.toString());
           };
