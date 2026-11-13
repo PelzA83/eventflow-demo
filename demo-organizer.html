@@ -1393,7 +1393,7 @@ function connectDemoSession() {
   }
 
   try {
-    const worker = new SharedWorker('./demo-worker.js?v=9', { name: 'eventflow-demo-v9' });
+    const worker = new SharedWorker('./demo-worker.js?v=10', { name: 'eventflow-demo-v10' });
     demoPort = worker.port;
 
     demoPort.onmessage = event => {
