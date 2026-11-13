@@ -1422,8 +1422,17 @@ function buildInvitationEditorParticipant(container, guest = null, asNew = false
   // Поля заполняются из истории, но старый guest_id не переносится:
   // повторное добавление создаёт новую запись с новым ID.
   if (guest?.id && !asNew) item.dataset.guestId = guest.id;
+  if (guest?.id && asNew) item.dataset.readdedFrom = guest.id;
   const remove = item.querySelector('[data-remove-participant]');
   if (remove) remove.addEventListener('click', () => {
+    if (item.dataset.readdedFrom) {
+      const restoreButton = container.closest('.invitation-editor')
+        ?.querySelector('[data-excluded-guest-id="' + item.dataset.readdedFrom + '"]');
+      if (restoreButton) {
+        restoreButton.disabled = false;
+        restoreButton.textContent = 'Добавить снова';
+      }
+    }
     item.remove();
     container.querySelectorAll('.participant-form-card').forEach((card, i) => {
       card.querySelector('.participant-form-card-title').textContent = 'Участник ' + (i + 1);
@@ -1488,13 +1497,20 @@ function openInvitationEditor(card, invitationId, focusNew = false) {
       row.className = 'excluded-participant-row';
       const name = document.createElement('span');
       name.textContent = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+      const alreadyReadded = members.some(member => member.readded_from_guest_id === guest.id);
       const addAgain = document.createElement('button');
       addAgain.type = 'button';
       addAgain.className = 'readd-participant-button';
-      addAgain.textContent = 'Добавить снова';
+      addAgain.dataset.excludedGuestId = guest.id;
+      addAgain.textContent = alreadyReadded ? 'Уже добавлен' : 'Добавить снова';
+      addAgain.disabled = alreadyReadded;
       addAgain.addEventListener('click', () => {
-        buildInvitationEditorParticipant(participants, guest, true);
-        participants.lastElementChild.querySelector('[data-field="full_name"]').focus();
+        if (addAgain.disabled) return;
+        const participant = buildInvitationEditorParticipant(participants, guest, true);
+        participant.dataset.readdedFrom = guest.id;
+        addAgain.disabled = true;
+        addAgain.textContent = 'Уже добавлен';
+        participant.querySelector('[data-field="full_name"]').focus();
       });
       row.append(name, addAgain);
       section.appendChild(row);
@@ -1531,6 +1547,7 @@ function openInvitationEditor(card, invitationId, focusNew = false) {
       }
       normalized.push({
         guest_id: item.dataset.guestId || '',
+        readded_from_guest_id: item.dataset.readdedFrom || '',
         last_name: parts[0],
         first_name: parts[1],
         patronymic: parts.slice(2).join(' '),
