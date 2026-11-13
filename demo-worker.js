@@ -14,6 +14,7 @@ const BLOCK_KEYS = [
   "dress_code",
   "menu",
   "gifts_wishes",
+  "getting_there",
   "rsvp",
   "seating",
   "qr_code"
@@ -86,6 +87,15 @@ function createInitialState() {
           ]
         },
         gifts_wishes: {},
+        getting_there: {
+          title: "Как добраться",
+          description: "Подсказки для планирования дороги к месту проведения мероприятия.",
+          routes: [
+            { label: "На автомобиле или такси", text: "Заранее уточните условия парковки рядом с площадкой." },
+            { label: "Общественный транспорт", text: "Проверьте актуальный маршрут и расписание перед выездом." },
+            { label: "На входе", text: "При необходимости обратитесь к организаторам за помощью." }
+          ]
+        },
         rsvp: {},
         seating: {
           title: "Ваше место на празднике",
@@ -96,7 +106,7 @@ function createInitialState() {
 
       const isVisible = [
         "greeting", "invitation_text", "event_info",
-        "dress_code", "menu", "gifts_wishes", "rsvp", "seating"
+        "dress_code", "menu", "gifts_wishes", "getting_there", "rsvp", "seating"
       ].includes(block_key);
 
       const settingsByBlock = block_key === "greeting"
