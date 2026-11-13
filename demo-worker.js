@@ -207,7 +207,7 @@ function addGuest(session, fields) {
     patronymic,
     salutation_type: ["male", "female"].includes(fields.salutation_type)
       ? fields.salutation_type
-      : "first_name",
+      : "auto",
     greeting_style: fields.greeting_style === "informal" ? "informal" : "respectful",
     role: "guest",
     group_name: String(fields.group_name || session.state.group.name || "").trim(),
