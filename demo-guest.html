@@ -1208,6 +1208,9 @@
         salutation = isRespectful ? 'Уважаемая' : 'Дорогая';
       } else if (resolvedTypes[0] === 'male') {
         salutation = isRespectful ? 'Уважаемый' : 'Дорогой';
+      } else if (isRespectful) {
+        // Нейтральное обращение, если автоматическое определение рода невозможно.
+        salutation = 'Здравствуйте';
       }
 
       heading.textContent = salutation;
@@ -1221,7 +1224,7 @@
         if (
           personalization === 'real' &&
           isRespectful &&
-          resolvedTypes[index] &&
+          (resolvedTypes[index] || names.length === 1) &&
           typeof guest.patronymic === 'string' &&
           guest.patronymic.trim()
         ) {
