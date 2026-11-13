@@ -596,7 +596,7 @@
       </div>
 
       <div class="eyebrow" id="greeting-heading">
-        Дорогие родные и близкие!
+        Дорогие друзья!
       </div>
 
       <div class="greeting-extra" id="greeting-intro" hidden></div>
@@ -607,15 +607,14 @@
     <div class="event-block" id="block-invitation-text" data-block-key="invitation_text">
       <h2 class="message-title" id="invitation-title" hidden></h2>
       <div class="message" id="invitation-paragraphs">
-        <p>Мы будем счастливы разделить с вами
-          один из самых важных дней нашей жизни.
-          Приглашаем вас на нашу свадьбу!</p>
+        <p>Будем рады видеть вас на нашем мероприятии.
+          Присоединяйтесь к нам, чтобы провести этот день в приятной компании.</p>
       </div>
     </div>
 
     <div class="event-block" id="block-couple-signature" data-block-key="couple_signature">
-      <div class="signature" id="couple-signature-text">С любовью,</div>
-      <div class="signature-subtitle" id="couple-signature-subtitle">Александр и Мария</div>
+      <div class="signature" id="couple-signature-text">С наилучшими пожеланиями,</div>
+      <div class="signature-subtitle" id="couple-signature-subtitle">Организаторы</div>
     </div>
 
     <div class="scroll-hint" id="scroll-hint">
@@ -689,8 +688,7 @@
       <h2>Подтвердите присутствие</h2>
 
       <p class="rsvp-intro">
-        Пожалуйста, укажите, кто сможет разделить
-        с нами этот особенный день.
+        Пожалуйста, сообщите, сможете ли вы принять участие в мероприятии.
       </p>
 
       <form id="rsvp-form">
@@ -704,7 +702,7 @@
         <textarea
           class="comment-field"
           id="rsvp-comment"
-          placeholder="Если хотите что-то нам сообщить..."
+          placeholder="Если хотите что-то сообщить организаторам..."
         ></textarea>
 
         <button class="submit-button" id="submit-button" type="submit">
@@ -978,7 +976,7 @@
 
       heading.textContent = isIndividualInvitation && isRespectful
         ? individualGuest.salutation_type === 'female' ? 'Уважаемая' : 'Уважаемый'
-        : isRespectful ? 'Уважаемые' : 'Дорогие родные и близкие!';
+        : isRespectful ? 'Уважаемые' : 'Дорогие друзья!';
 
       const alignment = ['left', 'center', 'right'].includes(settings.alignment)
         ? settings.alignment
@@ -1081,7 +1079,7 @@
       const displayedParagraphs = paragraphs.length
         ? paragraphs
         : [
-            'Мы будем счастливы разделить с вами один из самых важных дней нашей жизни. Приглашаем вас на нашу свадьбу!'
+            'Будем рады видеть вас на нашем мероприятии. Присоединяйтесь к нам, чтобы провести этот день в приятной компании.'
           ];
 
       displayedParagraphs.forEach(paragraph => {
@@ -1105,11 +1103,11 @@
 
       text.textContent = typeof content.text === 'string' && content.text.trim()
         ? content.text.trim()
-        : 'С любовью,';
+        : 'С наилучшими пожеланиями,';
 
       subtitle.textContent = typeof content.subtitle === 'string'
         ? content.subtitle.trim()
-        : 'Александр и Мария';
+        : 'Организаторы';
       subtitle.hidden = settings.show_subtitle === false || !subtitle.textContent;
 
       const textStyle = ['normal', 'italic', 'large'].includes(settings.text_style)
