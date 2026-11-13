@@ -126,27 +126,37 @@
       outline: 2px solid rgba(92, 113, 95, .2);
       border-color: var(--accent);
     }
+    .product-catalog {
+      display: grid;
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .product-group {
+      display: grid;
+      gap: 9px;
+    }
+    .product-group-title {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
     .product-options {
       display: grid;
-      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
       margin: 0;
       padding: 0;
       border: 0;
     }
-    .product-options legend {
-      margin: 24px 0 9px;
-      padding: 0;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-    }
     .product-option {
       position: relative;
       display: flex;
-      align-items: center;
-      gap: 13px;
-      min-height: 62px;
-      padding: 13px 15px;
+      align-items: flex-start;
+      gap: 10px;
+      min-height: 76px;
+      padding: 13px 12px;
       border: 1px solid var(--line);
       border-radius: 11px;
       background: #fff;
@@ -202,10 +212,35 @@
       outline-offset: 3px;
     }
     .product-option-text {
+      display: grid;
+      gap: 5px;
       color: var(--ink);
       font-size: 13px;
-      font-weight: 550;
-      line-height: 1.4;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .product-status {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+    .product-option.disabled {
+      border-style: dashed;
+      background: #f7f7f5;
+      cursor: not-allowed;
+      opacity: .62;
+    }
+    .product-option.disabled:hover {
+      border-color: var(--line);
+      background: #f7f7f5;
+      transform: none;
+    }
+    .product-option.disabled .product-dot {
+      border-color: #c9cac4;
+    }
+    .product-option.disabled .product-option-text {
+      color: #77786f;
     }
     .save { width: 100%; margin-top: 12px; }
     .status {
@@ -226,6 +261,8 @@
     @media (max-width: 480px) {
       body { padding: 18px 12px; }
       .panel { padding: 25px 20px; }
+      .product-options { grid-template-columns: 1fr; }
+      .product-option { min-height: 62px; }
     }
   </style>
 </head>
@@ -240,19 +277,51 @@
       <h1>Демонстрация EventFlow</h1>
       <p>Выберите продукт и откройте гостевое приглашение или кабинет организатора. Оба окна будут работать с общей демосессией выбранного продукта.</p>
 
-      <fieldset class="product-options">
-        <legend>Демонстрационный продукт</legend>
-        <label class="product-option">
-          <input type="radio" name="productType" value="corporate" checked>
-          <span class="product-dot" aria-hidden="true"></span>
-          <span class="product-option-text">Корпоративное мероприятие · новогодний вечер</span>
-        </label>
-        <label class="product-option">
-          <input type="radio" name="productType" value="wedding">
-          <span class="product-dot" aria-hidden="true"></span>
-          <span class="product-option-text">Свадебное торжество</span>
-        </label>
-      </fieldset>
+      <div class="product-catalog" aria-label="Направления EventFlow">
+        <section class="product-group" aria-labelledby="celebrationsTitle">
+          <div class="product-group-title" id="celebrationsTitle">Торжества</div>
+          <fieldset class="product-options" aria-label="Торжества">
+            <label class="product-option">
+              <input type="radio" name="productType" value="wedding" checked>
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">Свадебное<span class="product-status">Доступно в демо</span></span>
+            </label>
+            <div class="product-option disabled" aria-disabled="true">
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">Юбилейное<span class="product-status">Скоро</span></span>
+            </div>
+          </fieldset>
+        </section>
+
+        <section class="product-group" aria-labelledby="eventsTitle">
+          <div class="product-group-title" id="eventsTitle">Мероприятия</div>
+          <fieldset class="product-options" aria-label="Мероприятия">
+            <label class="product-option">
+              <input type="radio" name="productType" value="corporate">
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">Корпоративное<span class="product-status">Доступно в демо</span></span>
+            </label>
+            <div class="product-option disabled" aria-disabled="true">
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">Деловое<span class="product-status">Скоро</span></span>
+            </div>
+          </fieldset>
+        </section>
+
+        <section class="product-group" aria-labelledby="certificatesTitle">
+          <div class="product-group-title" id="certificatesTitle">Сертификаты</div>
+          <fieldset class="product-options" aria-label="Сертификаты">
+            <div class="product-option disabled" aria-disabled="true">
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">На услуги<span class="product-status">В разработке</span></span>
+            </div>
+            <div class="product-option disabled" aria-disabled="true">
+              <span class="product-dot" aria-hidden="true"></span>
+              <span class="product-option-text">Подарочный<span class="product-status">В разработке</span></span>
+            </div>
+          </fieldset>
+        </section>
+      </div>
       <div class="actions">
         <button type="button" id="openGuest">Открыть приглашение</button>
         <button type="button" class="secondary" id="openOrganizer">Открыть панель управления</button>
