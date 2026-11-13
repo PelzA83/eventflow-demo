@@ -834,6 +834,7 @@
     const params = new URLSearchParams(window.location.search);
     const contextId = params.get('context');
     const guestId = params.get('guest');
+    const invitationId = params.get('invitation');
     let demoPort = null;
     let demoState = null;
     let invitationGuests = [];
@@ -852,7 +853,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=14', { name: 'eventflow-demo-v14' });
+        const worker = new SharedWorker('./demo-worker.js?v=15', { name: 'eventflow-demo-v15' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
@@ -894,8 +895,25 @@
         document.getElementById('event-date').textContent = formatDate(event.date);
       }
 
-      if (guestId) {
-        const selectedGuest = state.guests.find(guest => guest.id === guestId);
+      if (invitationId) {
+        const selectedInvitation = (state.invitations || []).find(item => item.id === invitationId);
+        if (!selectedInvitation) {
+          document.getElementById('connection-status').textContent =
+            'Это приглашение не найдено. Попросите организатора отправить актуальную ссылку.';
+          document.getElementById('rsvp-section').style.display = 'none';
+          return;
+        }
+        invitationGuests = state.guests
+          .filter(guest => guest.invitation_id === invitationId && guest.participant_status !== 'excluded')
+          .map(guest => ({ ...guest }));
+        if (!invitationGuests.length) {
+          document.getElementById('connection-status').textContent =
+            'В этом приглашении пока нет активных участников. Обратитесь к организатору.';
+          document.getElementById('rsvp-section').style.display = 'none';
+          return;
+        }
+      } else if (guestId) {
+        const selectedGuest = state.guests.find(guest => guest.id === guestId && guest.participant_status !== 'excluded');
         if (!selectedGuest) {
           document.getElementById('connection-status').textContent =
             'Это персональное приглашение не найдено. Попросите организатора отправить актуальную ссылку.';
@@ -904,10 +922,10 @@
         }
         invitationGuests = [{ ...selectedGuest }];
       } else {
-        invitationGuests = state.guests.map(guest => ({ ...guest }));
+        invitationGuests = state.guests.filter(guest => guest.participant_status !== 'excluded').map(guest => ({ ...guest }));
       }
 
-      const greetingGroup = invitationGuests.length === 1 && guestId
+      const greetingGroup = invitationGuests.length === 1
         ? { ...group, greeting_style: invitationGuests[0].greeting_style || group.greeting_style }
         : group;
 
@@ -948,13 +966,13 @@
         getBlock('seating').content?.data || {},
         getBlock('seating').settings?.data || {}
       );
-      renderQrCode(guestId ? { ...state, guests: invitationGuests } : state, getBlock('qr_code'));
+      renderQrCode((invitationId || guestId) ? { ...state, guests: invitationGuests, invitation: (state.invitations || []).find(item => item.id === invitationId) || null } : state, getBlock('qr_code'));
 
       // Общие блоки участника доступны после подтверждения хотя бы одного
       // участника групповой ссылки или самого гостя персональной ссылки.
-      const canSeeSharedParticipantBlocks = guestId
+      const canSeeSharedParticipantBlocks = (invitationId || guestId)
         ? invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
-        : state.guests.some(guest => guest.rsvp_status === 'confirmed');
+        : state.guests.some(guest => guest.participant_status !== 'excluded' && guest.rsvp_status === 'confirmed');
 
       // Персональные сведения доступны только по персональной ссылке
       // тому гостю, который сам подтвердил участие.
@@ -1031,9 +1049,9 @@
         v: 1,
         t: 'ef',
         e: state.event?.id || '',
-        i: state.group?.id || '',
+        i: state.invitation?.id || state.group?.id || '',
         g: confirmedGuests.map(guest => guest.id),
-        r: Number(state.revision) || 0
+        r: Number(state.invitation?.qr_revision ?? state.revision) || 0
       };
 
       try {
