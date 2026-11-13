@@ -464,11 +464,21 @@ function updateInvitation(session, fields) {
     const firstName = String(item.first_name || "").trim();
     const lastName = String(item.last_name || "").trim();
     const guestId = String(item.guest_id || "").trim();
+    const readdedFromGuestId = String(item.readded_from_guest_id || "").trim();
     if (!firstName || !lastName) return false;
     if (guestId && (!currentById.has(guestId) || seenIds.has(guestId))) return false;
     if (guestId) seenIds.add(guestId);
+    if (readdedFromGuestId) {
+      const sourceGuest = session.state.guests.find(guest =>
+        guest.id === readdedFromGuestId &&
+        guest.invitation_id === invitationId &&
+        guest.participant_status === "excluded"
+      );
+      if (!sourceGuest || guestId) return false;
+    }
     normalized.push({
       guest_id: guestId,
+      readded_from_guest_id: readdedFromGuestId,
       first_name: firstName,
       last_name: lastName,
       patronymic: String(item.patronymic || "").trim(),
@@ -508,6 +518,7 @@ function updateInvitation(session, fields) {
         patronymic: participant.patronymic,
         salutation_type: participant.salutation_type,
         greeting_style: participant.greeting_style,
+        ...(participant.readded_from_guest_id ? { readded_from_guest_id: participant.readded_from_guest_id } : {}),
         role: "guest",
         group_name: String(session.state.group?.name || "").trim(),
         attendance: null,
