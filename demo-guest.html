@@ -454,6 +454,47 @@
     .gift-note-kicker { color:#978866; font:9px Arial,sans-serif; letter-spacing:1.8px; }.gift-note p { margin:9px 0 0; color:#5f5b52; font-size:15px; line-height:1.65; }
     @media (max-width:480px) { .personal-seat-values { gap:22px; }.seating-plan-tables { gap:8px; } }
 
+    .arrival-card {
+      max-width: 460px; margin: 0 auto; padding: 24px 22px;
+      border: 1px solid #e0dbd1; background: #fbfaf7; text-align: left;
+    }
+    .arrival-intro {
+      max-width: 390px; margin: 0 auto 24px; color: #6f6a5f;
+      font-size: 16px; line-height: 1.7; text-align: center;
+    }
+    .arrival-route-list { display: grid; gap: 20px; }
+    .arrival-route {
+      display: grid; grid-template-columns: 34px minmax(0, 1fr);
+      gap: 13px; align-items: start;
+    }
+    .arrival-route-number {
+      display: flex; width: 30px; height: 30px; align-items: center;
+      justify-content: center; border: 1px solid #c9bea8; border-radius: 50%;
+      color: #8e805f; font: 10px Arial, sans-serif;
+    }
+    .arrival-route-label {
+      display: block; margin: 2px 0 6px; color: #978866;
+      font: 9px Arial, sans-serif; letter-spacing: 1.6px;
+    }
+    .arrival-route p { margin: 0; color: #5f5b52; font-size: 15px; line-height: 1.65; }
+    .arrival-schematic {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin: 25px auto 0; padding: 16px 10px; border-top: 1px solid #e5e0d6;
+      color: #817c6e; font: 9px Arial, sans-serif; letter-spacing: 1px;
+    }
+    .arrival-schematic-point { display: flex; align-items: center; gap: 6px; }
+    .arrival-schematic-dot {
+      width: 8px; height: 8px; border: 1px solid #9b8b68;
+      border-radius: 50%; background: #e9e1d0;
+    }
+    .arrival-schematic-line { width: 38px; border-top: 1px dashed #bdb39f; }
+    .arrival-caption { margin: 0; color: #9a958a; font: 9px Arial, sans-serif; text-align: center; }
+    @media (max-width: 480px) {
+      .arrival-card { padding: 21px 17px; }
+      .arrival-schematic { gap: 7px; }
+      .arrival-schematic-line { width: 22px; }
+    }
+
     .connection-status {
       margin-top: 30px;
       font-family: Arial, sans-serif;
@@ -719,6 +760,26 @@
       </section>
     </section>
 
+    <section class="event-block" id="block-getting-there" data-block-key="getting_there" hidden>
+      <section class="details getting-there">
+        <h2>Как добраться</h2>
+        <p class="arrival-intro">Будем рады видеть вас на мероприятии. Ниже — несколько подсказок, которые помогут спокойно спланировать дорогу.</p>
+        <div class="arrival-card">
+          <div class="arrival-route-list">
+            <div class="arrival-route"><span class="arrival-route-number">01</span><div><span class="arrival-route-label">НА АВТОМОБИЛЕ ИЛИ ТАКСИ</span><p>Заложите немного времени на дорогу. Если планируете оставить автомобиль рядом с площадкой, заранее уточните условия парковки.</p></div></div>
+            <div class="arrival-route"><span class="arrival-route-number">02</span><div><span class="arrival-route-label">ОБЩЕСТВЕННЫЙ ТРАНСПОРТ</span><p>Выбирайте маршрут до остановки рядом с местом проведения. Перед выездом проверьте актуальное расписание и удобный путь.</p></div></div>
+            <div class="arrival-route"><span class="arrival-route-number">03</span><div><span class="arrival-route-label">НА ВХОДЕ</span><p>Если возникнут вопросы по проходу на площадку, обратитесь к организаторам — вам обязательно помогут.</p></div></div>
+          </div>
+          <div class="arrival-schematic" aria-hidden="true">
+            <span class="arrival-schematic-point"><i class="arrival-schematic-dot"></i> МАРШРУТ</span>
+            <i class="arrival-schematic-line"></i>
+            <span class="arrival-schematic-point"><i class="arrival-schematic-dot"></i> ПЛОЩАДКА</span>
+          </div>
+          <p class="arrival-caption">Условная схема пути, не карта местности</p>
+        </div>
+      </section>
+    </section>
+
     <section class="event-block" id="block-qr-code" data-block-key="qr_code" hidden>
       <section class="qr-code-section">
         <h2 id="qr-code-title">QR-код приглашения</h2>
@@ -791,7 +852,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=11', { name: 'eventflow-demo-v11' });
+        const worker = new SharedWorker('./demo-worker.js?v=12', { name: 'eventflow-demo-v12' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
