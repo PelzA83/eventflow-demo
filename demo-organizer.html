@@ -1331,7 +1331,7 @@ function renderGuests(guests) {
 
 function buildInvitationEditorParticipant(container, guest = null) {
   const index = container.querySelectorAll('.participant-form-card').length;
-  container.insertAdjacentHTML('beforeend', participantCardMarkup(index, guest));
+  container.insertAdjacentHTML('beforeend', participantCardMarkup(index, guest, true));
   const item = container.lastElementChild;
   if (guest?.id) item.dataset.guestId = guest.id;
   const remove = item.querySelector('[data-remove-participant]');
@@ -1705,7 +1705,7 @@ function connectDemoSession() {
   }
 }
 
-function participantCardMarkup(index, guest = null) {
+function participantCardMarkup(index, guest = null, allowRemoveFirst = false) {
   const fullName = guest
     ? [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ')
     : '';
@@ -1716,7 +1716,7 @@ function participantCardMarkup(index, guest = null) {
     <section class="participant-form-card" data-participant-index="${index}">
       <div class="participant-form-card-head">
         <span class="participant-form-card-title">Участник ${index + 1}</span>
-        <button class="remove-participant-field" type="button" data-remove-participant>Исключить</button>
+        ${allowRemoveFirst || (index > 0 && !guest) ? '<button class="remove-participant-field" type="button" data-remove-participant>Исключить</button>' : ''}
       </div>
       <div class="guest-form-grid">
         <div class="guest-form-field full">
