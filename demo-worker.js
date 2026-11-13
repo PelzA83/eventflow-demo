@@ -20,8 +20,9 @@ const BLOCK_KEYS = [
   "qr_code"
 ];
 
-function createInitialState() {
+function createInitialState(productType = "corporate") {
   const now = new Date().toISOString();
+  const isWedding = productType === "wedding";
 
   const state = {
     schema_version: 2,
@@ -33,9 +34,9 @@ function createInitialState() {
 
     event: {
       id: "demo-event",
-      title: "Новогодний вечер",
-      date: "2026-12-18",
-      event_date: "2026-12-18",
+      title: isWedding ? "Свадебное торжество" : "Новогодний вечер",
+      date: isWedding ? "2027-06-19" : "2026-12-18",
+      event_date: isWedding ? "2027-06-19" : "2026-12-18",
       event_time: "18:00",
       timezone: "Asia/Yekaterinburg",
       venue_name: "Загородная площадка",
@@ -46,7 +47,7 @@ function createInitialState() {
 
     group: {
       id: "demo-group",
-      name: "Гости новогоднего вечера",
+      name: isWedding ? "Гости свадьбы" : "Гости новогоднего вечера",
       greeting_style: "respectful"
     },
 
@@ -57,11 +58,16 @@ function createInitialState() {
       const contentByBlock = {
         greeting: {},
         invitation_text: {
-          title: "Приглашаем на новогодний вечер",
-          paragraphs: [
-            "Будем рады встретить Новый год вместе с вами!",
-            "Сохраните этот вечер для тёплой встречи, праздничного настроения и добрых пожеланий."
-          ]
+          title: isWedding ? "Приглашаем разделить с нами этот день" : "Приглашаем на новогодний вечер",
+          paragraphs: isWedding
+            ? [
+                "Будем счастливы разделить один из самых важных дней нашей жизни с вами.",
+                "Пусть этот день станет тёплым воспоминанием, к которому мы будем возвращаться вместе."
+              ]
+            : [
+                "Будем рады встретить Новый год вместе с вами!",
+                "Сохраните этот вечер для тёплой встречи, праздничного настроения и добрых пожеланий."
+              ]
         },
         event_info: {
           title: "Когда и где встречаемся",
@@ -72,7 +78,10 @@ function createInitialState() {
             { type: "address", label: "Адрес" }
           ]
         },
-        couple_signature: {},
+        couple_signature: {
+          text: isWedding ? "С любовью," : "До встречи на празднике!",
+          subtitle: isWedding ? "Александр & Мария" : "Команда организаторов"
+        },
         dress_code: {
           title: "Дресс-код",
           description: "Праздничный образ, в котором вам будет комфортно провести этот день. Будем рады видеть вас в мягкой, гармоничной палитре.",
@@ -107,8 +116,9 @@ function createInitialState() {
 
       const isVisible = [
         "greeting", "invitation_text", "event_info",
-        "dress_code", "menu", "gifts_wishes", "getting_there", "rsvp", "seating"
-      ].includes(block_key);
+        "dress_code", "menu", "getting_there", "rsvp"
+      ].includes(block_key) ||
+      (isWedding && ["gifts_wishes", "seating"].includes(block_key));
 
       const settingsByBlock = block_key === "greeting"
         ? { personalization: "real" }
@@ -229,9 +239,9 @@ function ensureInvitationStructure(state) {
   return state;
 }
 
-function getSession(contextId) {
+function getSession(contextId, productType = "corporate") {
   if (!sessions.has(contextId)) {
-    const state = ensureInvitationStructure(createInitialState());
+    const state = ensureInvitationStructure(createInitialState(productType));
     sessions.set(contextId, {
       state,
       ports: new Set()
@@ -637,7 +647,8 @@ onconnect = (event) => {
       }
 
       connectedContextId = contextId;
-      const session = getSession(contextId);
+      const productType = message.productType === "wedding" ? "wedding" : "corporate";
+      const session = getSession(contextId, productType);
       session.ports.add(port);
       sendState(port, contextId, session.state);
       return;
