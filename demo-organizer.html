@@ -912,13 +912,13 @@ input:focus {
               <input id="newGuestGroup" name="group_name" placeholder="Например, Семья Ивановых">
             </div>
             <div class="guest-form-field">
-              <label for="newGuestSalutation">Форма обращения</label>
+              <label for="newGuestSalutation">Род обращения</label>
               <select id="newGuestSalutation" name="salutation_type">
-                <option value="male">Уважаемый (мужской род)</option>
-                <option value="female">Уважаемая (женский род)</option>
-                <option value="first_name">Только имя</option>
+                <option value="auto">Определять автоматически</option>
+                <option value="male">Мужской род</option>
+                <option value="female">Женский род</option>
               </select>
-              <div class="guest-form-hint">Вы выбираете форму самостоятельно — EventFlow не определяет её автоматически.</div>
+              <div class="guest-form-hint">EventFlow определит род по имени. Если потребуется, вы сможете изменить его вручную.</div>
             </div>
             <div class="guest-form-field">
               <label for="newGuestGreetingStyle">Стиль приветствия</label>
@@ -1418,18 +1418,6 @@ function connectDemoSession() {
   }
 }
 
-function updateSalutationAvailability() {
-  const style = document.getElementById('newGuestGreetingStyle').value;
-  const salutation = document.getElementById('newGuestSalutation');
-  const firstNameOption = salutation.querySelector('option[value="first_name"]');
-  const informal = style === 'informal';
-
-  firstNameOption.disabled = !informal;
-  if (!informal && salutation.value === 'first_name') {
-    salutation.value = 'male';
-  }
-}
-
 function toggleGuestForm(show) {
   const panel = document.getElementById('guestFormPanel');
   const toggleButton = document.getElementById('toggleGuestFormButton');
@@ -1461,10 +1449,10 @@ function editGuest(guestId) {
   document.getElementById('newGuestFullName').value =
     [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
   document.getElementById('newGuestGroup').value = guest.group_name || '';
-  document.getElementById('newGuestSalutation').value = guest.salutation_type || 'male';
+  document.getElementById('newGuestSalutation').value =
+    ['male', 'female'].includes(guest.salutation_type) ? guest.salutation_type : 'auto';
   document.getElementById('newGuestGreetingStyle').value = guest.greeting_style || 'respectful';
-  updateSalutationAvailability();
-
+  
   document.getElementById('guestFormTitle').textContent = 'Редактирование гостя';
   document.getElementById('guestFormDescription').textContent =
     'Измените данные приглашённого. Персональная ссылка и сохранённый ответ RSVP останутся прежними.';
@@ -1472,12 +1460,6 @@ function editGuest(guestId) {
   document.getElementById('guestFormMessage').textContent = '';
   toggleGuestForm(true);
 }
-
-document.getElementById('newGuestGreetingStyle').addEventListener('change', updateSalutationAvailability);
-document.getElementById('guestForm').addEventListener('reset', () => {
-  window.setTimeout(updateSalutationAvailability, 0);
-});
-updateSalutationAvailability();
 
 document.getElementById('eventForm').addEventListener('submit', event => {
   event.preventDefault();
