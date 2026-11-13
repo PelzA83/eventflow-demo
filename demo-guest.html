@@ -841,6 +841,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const contextId = params.get('context');
+    const productType = params.get('product') === 'wedding' ? 'wedding' : 'corporate';
     const guestId = params.get('guest');
     const invitationId = params.get('invitation');
     let demoPort = null;
@@ -878,7 +879,7 @@
         };
 
         demoPort.start();
-        demoPort.postMessage({ type: 'init', contextId });
+        demoPort.postMessage({ type: 'init', contextId, productType });
       } catch (error) {
         status.textContent = 'Не удалось подключиться к временной демосессии.';
         console.error('EventFlow demo connection error:', error);
