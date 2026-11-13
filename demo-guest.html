@@ -58,9 +58,12 @@
     }
 
     .greeting-names {
+      max-width: 100%;
       margin: 0 auto 30px;
-      font-size: clamp(42px, 10vw, 64px);
-      line-height: 1.12;
+      font-size: clamp(26px, 7vw, 56px);
+      line-height: 1.16;
+      overflow-wrap: anywhere;
+      word-break: normal;
     }
 
     .greeting-name {
@@ -1224,7 +1227,6 @@
         if (
           personalization === 'real' &&
           isRespectful &&
-          (resolvedTypes[index] || names.length === 1) &&
           typeof guest.patronymic === 'string' &&
           guest.patronymic.trim()
         ) {
