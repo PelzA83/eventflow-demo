@@ -348,6 +348,12 @@ input:focus {
   font-family: 'Playfair Display', serif;
   font-size: 18px;
 }
+.invitation-card-actions { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.invitation-editor { margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:10px; background:#fcfbf8; }
+.invitation-editor[hidden] { display:none; }
+.invitation-editor .guest-form-footer { justify-content:flex-end; }
+.invitation-editor .participant-form-card { position:relative; }
+.invitation-editor .remove-participant-field { color:#a45c50; }
 .invitation-card-meta {
   color: var(--muted);
   font-size: 11px;
@@ -1225,14 +1231,15 @@ function renderGuests(guests) {
   const list = document.getElementById('guestList');
   list.replaceChildren();
 
+  const activeGuests = dashboardGuests.filter(guest => guest.participant_status !== 'excluded');
   const filteredGuests = currentGuestFilter === 'all'
-    ? dashboardGuests
-    : dashboardGuests.filter(guest => guest.rsvp_status === currentGuestFilter);
+    ? activeGuests
+    : activeGuests.filter(guest => guest.rsvp_status === currentGuestFilter);
 
   if (filteredGuests.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'guest-empty';
-    empty.textContent = dashboardGuests.length
+    empty.textContent = activeGuests.length
       ? 'В этой категории пока нет гостей.'
       : 'Пока нет добавленных гостей.';
     list.appendChild(empty);
@@ -1247,52 +1254,53 @@ function renderGuests(guests) {
     groups.get(key).push(guest);
   });
 
-  groups.forEach((members, invitationId) => {
+  groups.forEach((filteredMembers, invitationId) => {
     const invitation = invitations.find(item => item.id === invitationId);
+    const members = activeGuests.filter(guest => guest.invitation_id === invitationId);
     const card = document.createElement('section');
     card.className = 'invitation-card';
+    card.dataset.invitationId = invitationId;
 
     const head = document.createElement('div');
     head.className = 'invitation-card-head';
     const titleWrap = document.createElement('div');
     const title = document.createElement('div');
     title.className = 'invitation-card-title';
-    title.textContent = getInvitationLabel(invitation, members);
+    title.textContent = getInvitationLabel(invitation, members.length ? members : filteredMembers);
     const meta = document.createElement('div');
     meta.className = 'invitation-card-meta';
-    const allMembersCount = dashboardGuests.filter(guest =>
-      guest.invitation_id === invitationId && guest.participant_status !== 'excluded'
-    ).length;
-    meta.textContent = (allMembersCount || members.length) + ' ' +
-      ((allMembersCount || members.length) === 1 ? 'участник' :
-       (allMembersCount || members.length) < 5 ? 'участника' : 'участников');
+    const count = members.length || filteredMembers.length;
+    meta.textContent = count + ' ' +
+      (count === 1 ? 'участник' : count < 5 ? 'участника' : 'участников');
     titleWrap.append(title, meta);
 
-    const addButton = document.createElement('button');
-    addButton.type = 'button';
-    addButton.className = 'invitation-add-member';
-    addButton.textContent = 'Добавить участника';
-    addButton.addEventListener('click', () => startAddParticipant(invitationId));
-    head.append(titleWrap, addButton);
+    const actions = document.createElement('div');
+    actions.className = 'invitation-card-actions';
+
+    const linkButton = document.createElement('button');
+    linkButton.type = 'button';
+    linkButton.className = 'guest-link-button';
+    linkButton.textContent = 'Ссылка';
+    linkButton.addEventListener('click', () => copyInvitationLink(invitationId, linkButton));
+
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'guest-edit-button';
+    editButton.textContent = 'Редактировать';
+    editButton.addEventListener('click', () => openInvitationEditor(card, invitationId));
+
+    actions.append(linkButton, editButton);
+    head.append(titleWrap, actions);
     card.appendChild(head);
 
     members.forEach(guest => {
       const row = document.createElement('div');
       row.className = 'guest';
-
       const details = document.createElement('div');
       const name = document.createElement('div');
       name.className = 'guest-name';
-      const nameParts = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean);
-      name.textContent = nameParts.join(' ') || 'Без имени';
+      name.textContent = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ') || 'Без имени';
       details.appendChild(name);
-
-      if (guest.group_name || demoState?.group?.name) {
-        const group = document.createElement('div');
-        group.className = 'hint';
-        group.textContent = guest.group_name || demoState.group.name;
-        details.appendChild(group);
-      }
 
       const status = document.createElement('span');
       status.className = 'status';
@@ -1306,39 +1314,130 @@ function renderGuests(guests) {
         status.classList.add('pending');
         status.textContent = 'Ожидаем ответ';
       }
-
-      const actions = document.createElement('div');
-      actions.className = 'guest-row-actions';
-      const linkButton = document.createElement('button');
-      linkButton.type = 'button';
-      linkButton.className = 'guest-link-button';
-      linkButton.textContent = 'Ссылка';
-      linkButton.setAttribute('aria-label', 'Скопировать персональную ссылку для ' + name.textContent);
-      linkButton.addEventListener('click', () => copyGuestInvitationLink(guest.id, linkButton));
-      actions.appendChild(linkButton);
-
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'guest-edit-button';
-      editButton.textContent = 'Редактировать';
-      editButton.setAttribute('aria-label', 'Редактировать данные гостя ' + name.textContent);
-      editButton.addEventListener('click', () => editGuest(guest.id));
-      actions.appendChild(editButton);
-
-      row.append(details, status, actions);
+      row.append(details, status);
       card.appendChild(row);
     });
+
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'invitation-add-member';
+    addButton.textContent = 'Добавить участника';
+    addButton.addEventListener('click', () => openInvitationEditor(card, invitationId, true));
+    card.appendChild(addButton);
 
     list.appendChild(card);
   });
 }
 
-async function copyGuestInvitationLink(guestId, button) {
-  if (!contextId || !guestId) return;
+function buildInvitationEditorParticipant(container, guest = null) {
+  const index = container.querySelectorAll('.participant-form-card').length;
+  container.insertAdjacentHTML('beforeend', participantCardMarkup(index, guest));
+  const item = container.lastElementChild;
+  if (guest?.id) item.dataset.guestId = guest.id;
+  const remove = item.querySelector('[data-remove-participant]');
+  if (remove) remove.addEventListener('click', () => {
+    item.remove();
+    container.querySelectorAll('.participant-form-card').forEach((card, i) => {
+      card.querySelector('.participant-form-card-title').textContent = 'Участник ' + (i + 1);
+    });
+  });
+}
+
+function openInvitationEditor(card, invitationId, focusNew = false) {
+  const invitation = (demoState?.invitations || []).find(item => item.id === invitationId);
+  const members = dashboardGuests.filter(guest =>
+    guest.invitation_id === invitationId && guest.participant_status !== 'excluded'
+  );
+  if (!invitation || !members.length) return;
+
+  let editor = card.querySelector('.invitation-editor');
+  if (editor) {
+    editor.hidden = false;
+    if (focusNew) editor.querySelector('[data-add-editor-participant]').click();
+    return;
+  }
+
+  editor = document.createElement('form');
+  editor.className = 'invitation-editor';
+  editor.innerHTML = `
+    <div class="invitation-name-field">
+      <label>Внутреннее название приглашения</label>
+      <input data-invitation-name type="text" maxlength="120" placeholder="Например, Семья Ивановых">
+      <div class="guest-form-hint">Это название видит только организатор.</div>
+    </div>
+    <div class="participants-heading">
+      <h4>Участники приглашения</h4>
+      <p>Изменяйте данные, добавляйте новых участников или исключайте их из состава. Ответы действующих участников сохраняются.</p>
+    </div>
+    <div data-editor-participants></div>
+    <button class="add-participant-inline" data-add-editor-participant type="button">＋ Добавить участника</button>
+    <div class="guest-form-footer">
+      <button class="guest-action" data-cancel-editor type="button">Отмена</button>
+      <button class="guest-action primary-action" type="submit">Сохранить приглашение</button>
+    </div>
+    <div class="guest-form-message" data-editor-message role="status"></div>
+  `;
+  editor.querySelector('[data-invitation-name]').value = invitation.internal_name || '';
+  const participants = editor.querySelector('[data-editor-participants]');
+  members.forEach(guest => buildInvitationEditorParticipant(participants, guest));
+  editor.querySelector('[data-add-editor-participant]').addEventListener('click', () => {
+    buildInvitationEditorParticipant(participants);
+    participants.lastElementChild.querySelector('[data-field="full_name"]').focus();
+  });
+  editor.querySelector('[data-cancel-editor]').addEventListener('click', () => editor.remove());
+  editor.addEventListener('submit', event => {
+    event.preventDefault();
+    const message = editor.querySelector('[data-editor-message]');
+    if (!demoPort || !demoState) {
+      message.textContent = 'Нет подключения к демосессии. Обновите страницу.';
+      return;
+    }
+    const cards = [...participants.querySelectorAll('.participant-form-card')];
+    if (!cards.length) {
+      message.textContent = 'В приглашении должен остаться хотя бы один участник.';
+      return;
+    }
+    const normalized = [];
+    for (let index = 0; index < cards.length; index += 1) {
+      const item = cards[index];
+      const fullName = item.querySelector('[data-field="full_name"]').value.trim();
+      const parts = fullName.split(/\\s+/).filter(Boolean);
+      if (parts.length < 2) {
+        message.textContent = 'Укажите фамилию и имя участника ' + (index + 1) + '.';
+        item.querySelector('[data-field="full_name"]').focus();
+        return;
+      }
+      normalized.push({
+        guest_id: item.dataset.guestId || '',
+        last_name: parts[0],
+        first_name: parts[1],
+        patronymic: parts.slice(2).join(' '),
+        salutation_type: item.querySelector('[data-field="salutation_type"]').value,
+        greeting_style: item.querySelector('[data-field="greeting_style"]').value
+      });
+    }
+    demoPort.postMessage({
+      type: 'update-invitation',
+      fields: {
+        invitation_id: invitationId,
+        internal_name: editor.querySelector('[data-invitation-name]').value.trim(),
+        participants: normalized
+      }
+    });
+    editor.remove();
+  });
+
+  card.appendChild(editor);
+  editor.hidden = false;
+  if (focusNew) editor.querySelector('[data-add-editor-participant]').click();
+  else editor.querySelector('[data-field="full_name"]')?.focus();
+}
+
+async function copyInvitationLink(invitationId, button) {
+  if (!contextId || !invitationId) return;
   const url = new URL('./demo-guest.html', window.location.href);
   url.searchParams.set('context', contextId);
-  url.searchParams.set('guest', guestId);
-
+  url.searchParams.set('invitation', invitationId);
   const originalLabel = button.textContent;
   try {
     await navigator.clipboard.writeText(url.toString());
@@ -1617,7 +1716,7 @@ function participantCardMarkup(index, guest = null) {
     <section class="participant-form-card" data-participant-index="${index}">
       <div class="participant-form-card-head">
         <span class="participant-form-card-title">Участник ${index + 1}</span>
-        ${index > 0 && !guest ? '<button class="remove-participant-field" type="button" data-remove-participant>Удалить</button>' : ''}
+        <button class="remove-participant-field" type="button" data-remove-participant>Исключить</button>
       </div>
       <div class="guest-form-grid">
         <div class="guest-form-field full">
