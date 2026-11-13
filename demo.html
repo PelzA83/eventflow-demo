@@ -126,6 +126,11 @@
       outline: 2px solid rgba(92, 113, 95, .2);
       border-color: var(--accent);
     }
+    .product-select {
+      display:block; width:100%; min-height:48px; padding:11px 13px;
+      border:1px solid var(--line); border-radius:9px; background:#fff;
+      color:var(--ink); font:inherit; font-size:13px;
+    }
     .save { width: 100%; margin-top: 12px; }
     .status {
       margin-top: 14px;
@@ -159,6 +164,11 @@
       <h1>Демонстрация EventFlow</h1>
       <p>Откройте приглашение и панель организатора в отдельных окнах. Они будут работать с общими временными данными этой демосессии.</p>
 
+      <label class="field-label" for="productTypeSelect">Демонстрационный продукт</label>
+      <select id="productTypeSelect" class="product-select">
+        <option value="corporate">Корпоративное мероприятие · новогодний вечер</option>
+        <option value="wedding">Свадебное торжество</option>
+      </select>
       <div class="actions">
         <button type="button" id="openGuest">Открыть приглашение</button>
         <button type="button" class="secondary" id="openOrganizer">Открыть панель управления</button>
@@ -188,6 +198,7 @@
     let contextId = null;
     let anchorPort = null;
     let clientPort = null;
+    let activeProductType = null;
 
     function makeContextId() {
       if (crypto.randomUUID) return crypto.randomUUID();
@@ -205,14 +216,19 @@
       return worker.port;
     }
 
-    function ensureSessionAnchor() {
-      if (contextId) return contextId;
+    function ensureSessionAnchor(productType) {
+      if (contextId && activeProductType === productType) return contextId;
 
+      if (anchorPort) {
+        try { anchorPort.postMessage({ type: "disconnect" }); } catch (error) {}
+      }
       contextId = makeContextId();
+      activeProductType = productType;
       anchorPort = createWorkerPort();
-      anchorPort.postMessage({ type: "init", contextId });
+      anchorPort.postMessage({ type: "init", contextId, productType });
       document.getElementById("sessionInfo").textContent =
-        "Создана временная сессия: " + contextId;
+        (productType === "wedding" ? "Свадебная демосессия" : "Корпоративная демосессия") +
+        " · " + contextId;
       return contextId;
     }
 
@@ -228,7 +244,8 @@
           }
         }
 
-        const id = ensureSessionAnchor();
+        const productType = document.getElementById("productTypeSelect").value;
+        const id = ensureSessionAnchor(productType);
 
         if (role === "guest") {
           anchorPort.onmessage = event => {
@@ -239,6 +256,8 @@
             const target = new URL("demo-guest.html", location.href);
             target.searchParams.set("view", "guest");
             target.searchParams.set("context", id);
+        target.searchParams.set("product", productType);
+            target.searchParams.set("product", productType);
 
             const invitations = Array.isArray(message.state?.invitations)
               ? message.state.invitations
@@ -250,7 +269,7 @@
           };
 
           // Повторный init возвращает актуальное состояние даже для уже созданной сессии.
-          anchorPort.postMessage({ type: "init", contextId: id });
+          anchorPort.postMessage({ type: "init", contextId: id, productType });
           return;
         }
 
@@ -290,6 +309,7 @@
       }
 
       contextId = contextIdFromUrl;
+      const productType = params.get("product") === "wedding" ? "wedding" : "corporate";
       document.getElementById("childSessionInfo").textContent =
         "ID демосессии: " + contextId;
 
@@ -307,7 +327,7 @@
             document.getElementById("connectionStatus").textContent = message.message;
           }
         };
-        clientPort.postMessage({ type: "init", contextId });
+        clientPort.postMessage({ type: "init", contextId, productType });
       } catch (error) {
         document.getElementById("connectionStatus").textContent = error.message;
         document.getElementById("saveNote").disabled = true;
