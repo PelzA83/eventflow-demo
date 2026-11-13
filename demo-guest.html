@@ -960,7 +960,13 @@
           continue;
         }
 
-        node.textContent = node.textContent.replace(pattern,     function renderGreeting(group, guests, content = {}, settings = {}) {
+        node.textContent = node.textContent.replace(pattern, (match, prefix, word) => prefix + word + '\u00A0');
+      }
+    }
+
+    // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
+
+    function renderGreeting(group, guests, content = {}, settings = {}) {
       const isRespectful = (guests.length === 1
         ? guests[0].greeting_style || group?.greeting_style
         : group?.greeting_style) === 'respectful';
@@ -1051,12 +1057,6 @@
       });
 
       heading.appendChild(document.createTextNode('!'));
-    }
-
-'\u00A0и\u00A0' : ', ';
-          namesContainer.appendChild(separator);
-        }
-      });
     }
 
     // ОТОБРАЖЕНИЕ ТЕКСТА ПРИГЛАШЕНИЯ
