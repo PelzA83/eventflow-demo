@@ -481,10 +481,27 @@ function submitRsvp(session, responses, comment) {
 
   const allowedAttendance = ["yes", "no", "pending"];
 
+  // Сохраняем исходный состав подтвердивших участие отдельно по каждому
+  // приглашению, чтобы повысить ревизию только при реальном изменении состава.
+  const confirmedBefore = new Map();
+  for (const invitation of session.state.invitations) {
+    const ids = session.state.guests
+      .filter(guest => guest.invitation_id === invitation.id &&
+        guest.participant_status !== "excluded" &&
+        guest.rsvp_status === "confirmed")
+      .map(guest => guest.id)
+      .sort()
+      .join("|");
+    confirmedBefore.set(invitation.id, ids);
+  }
+
   for (const response of responses) {
     if (!isPlainObject(response)) continue;
 
-    const guest = session.state.guests.find(item => item.id === response.guest_id);
+    const guest = session.state.guests.find(item =>
+      item.id === response.guest_id &&
+      item.participant_status !== "excluded"
+    );
     if (!guest || !allowedAttendance.includes(response.attendance)) continue;
 
     guest.attendance = response.attendance === "pending"
@@ -498,6 +515,22 @@ function submitRsvp(session, responses, comment) {
     guest.responded_at = response.attendance === "pending"
       ? null
       : new Date().toISOString();
+  }
+
+  for (const invitation of session.state.invitations) {
+    const before = confirmedBefore.get(invitation.id) || "";
+    const after = session.state.guests
+      .filter(guest => guest.invitation_id === invitation.id &&
+        guest.participant_status !== "excluded" &&
+        guest.rsvp_status === "confirmed")
+      .map(guest => guest.id)
+      .sort()
+      .join("|");
+
+    if (before !== after) {
+      invitation.qr_revision = Number(invitation.qr_revision || 0) + 1;
+      invitation.updated_at = new Date().toISOString();
+    }
   }
 
   if (typeof comment === "string") {
