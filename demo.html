@@ -217,9 +217,44 @@
     }
 
     function openDemoWindow(role) {
+      let guestWindow = null;
       try {
+        if (role === "guest") {
+          guestWindow = window.open("about:blank", "_blank");
+          if (!guestWindow) {
+            document.getElementById("sessionInfo").textContent =
+              "Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и повторите нажатие.";
+            return;
+          }
+        }
+
         const id = ensureSessionAnchor();
-        const target = new URL(role === "guest" ? "demo-guest.html" : "demo-organizer.html", location.href);
+
+        if (role === "guest") {
+          anchorPort.onmessage = event => {
+            const message = event.data || {};
+            if (message.type !== "state" || message.contextId !== id) return;
+
+            anchorPort.onmessage = null;
+            const target = new URL("demo-guest.html", location.href);
+            target.searchParams.set("view", "guest");
+            target.searchParams.set("context", id);
+
+            const guests = Array.isArray(message.state?.guests)
+              ? message.state.guests
+              : [];
+            const firstGuest = guests[0];
+            if (firstGuest?.id) target.searchParams.set("guest", firstGuest.id);
+
+            guestWindow.location.replace(target.toString());
+          };
+
+          // Повторный init возвращает актуальное состояние даже для уже созданной сессии.
+          anchorPort.postMessage({ type: "init", contextId: id });
+          return;
+        }
+
+        const target = new URL("demo-organizer.html", location.href);
         target.searchParams.set("view", role);
         target.searchParams.set("context", id);
         const opened = window.open(target.toString(), "_blank");
@@ -228,6 +263,7 @@
             "Браузер заблокировал новое окно. Разрешите всплывающие окна для этого сайта и повторите нажатие.";
         }
       } catch (error) {
+        if (guestWindow && !guestWindow.closed) guestWindow.close();
         document.getElementById("sessionInfo").textContent = error.message;
       }
     }
