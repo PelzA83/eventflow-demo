@@ -755,7 +755,19 @@ input:focus {
   .panel { padding: 19px 16px; border-radius: 14px; }
   .panel h2 { font-size: 23px; }
   .panel-head { align-items: flex-start; }
-  .guest { align-items: flex-start; }
+  .guest {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 10px;
+  }
+  .guest > div:first-child { min-width: 0; }
+  .guest-row-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+    flex-wrap: wrap;
+  }
   .status { font-size: 10px; padding: 6px 9px; }
 }
 </style>
