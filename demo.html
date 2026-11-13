@@ -211,7 +211,7 @@
       if (!("SharedWorker" in window)) {
         throw new Error("Этот браузер не поддерживает SharedWorker. Откройте демо в актуальной версии Chrome, Edge, Firefox или Safari.");
       }
-      const worker = new SharedWorker("./demo-worker.js?v=16", { name: "eventflow-demo-v16" });
+      const worker = new SharedWorker("./demo-worker.js?v=17", { name: "eventflow-demo-v17" });
       worker.port.start();
       return worker.port;
     }
