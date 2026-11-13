@@ -1040,6 +1040,7 @@
           : [];
 
       heading.replaceChildren();
+      heading.hidden = false;
 
       if (names.length === 0) {
         heading.textContent = isRespectful ? 'Уважаемые гости!' : 'Дорогие друзья!';
@@ -1056,7 +1057,8 @@
         salutation = isRespectful ? 'Уважаемый' : 'Дорогой';
       }
 
-      if (salutation) heading.appendChild(document.createTextNode(salutation + ' '));
+      heading.textContent = salutation;
+      heading.hidden = !salutation;
 
       names.forEach((guest, index) => {
         const name = document.createElement('span');
@@ -1074,17 +1076,18 @@
         }
 
         name.textContent = nameParts.join(' ');
-        heading.appendChild(name);
+        namesContainer.appendChild(name);
 
         if (index < names.length - 1) {
           const separator = document.createElement('span');
           separator.className = 'greeting-separator';
           separator.textContent = index === names.length - 2 ? '\u00A0и\u00A0' : ', ';
-          heading.appendChild(separator);
+          namesContainer.appendChild(separator);
         }
       });
 
-      heading.appendChild(document.createTextNode('!'));
+      namesContainer.appendChild(document.createTextNode('!'));
+      namesContainer.hidden = false;
     }
 
     // ОТОБРАЖЕНИЕ ТЕКСТА ПРИГЛАШЕНИЯ
