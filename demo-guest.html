@@ -974,7 +974,13 @@
         getBlock('seating').content?.data || {},
         getBlock('seating').settings?.data || {}
       );
-      renderQrCode((invitationId || guestId) ? { ...state, guests: invitationGuests, invitation: (state.invitations || []).find(item => item.id === invitationId) || null } : state, getBlock('qr_code'));
+      const qrInvitationId = invitationId || invitationGuests[0]?.invitation_id || '';
+      const qrInvitation = (state.invitations || []).find(item => item.id === qrInvitationId) || null;
+      renderQrCode({
+        ...state,
+        guests: invitationGuests,
+        invitation: qrInvitation
+      }, getBlock('qr_code'));
 
       // Общие блоки участника доступны после подтверждения хотя бы одного
       // участника групповой ссылки или самого гостя персональной ссылки.
@@ -1031,17 +1037,17 @@
       container.replaceChildren();
       status.textContent = '';
 
-      const confirmedGuests = (state.guests || [])
-        .filter(guest => guest.rsvp_status === 'confirmed')
-        .map(guest => ({
-          id: guest.id,
-          name: [guest.first_name, guest.last_name].filter(Boolean).join(' '),
-          status: 'confirmed'
-        }));
+      const invitationIdentifier = String(state.invitation?.id || '').trim();
+      const hasConfirmedGuest = (state.guests || [])
+        .some(guest => guest.rsvp_status === 'confirmed');
 
-      // QR показываем только если блок включён организатором
-      // и есть хотя бы один гость с подтверждённым участием.
-      if (block.is_visible === false || confirmedGuests.length === 0) {
+      // QR относится к конкретному приглашению и показывается,
+      // только если блок включён и участие подтвердил хотя бы один гость.
+      if (
+        block.is_visible === false ||
+        !invitationIdentifier ||
+        !hasConfirmedGuest
+      ) {
         section.hidden = true;
         return;
       }
@@ -1053,15 +1059,13 @@
         return;
       }
 
-      // Компактный payload: QR хранит только идентификаторы и подтверждённых гостей.
-      // Названия, даты и персональные данные получаются по идентификаторам из базы.
+      // В QR хранятся только идентификаторы приглашения и ревизия.
+      // Состав участников, их статусы и рассадка загружаются из базы.
       const payload = {
         v: 1,
-        t: 'ef',
         e: state.event?.id || '',
-        i: state.invitation?.id || state.group?.id || '',
-        g: confirmedGuests.map(guest => guest.id),
-        r: Number(state.invitation?.qr_revision ?? state.revision) || 0
+        i: invitationIdentifier,
+        r: Number(state.invitation?.qr_revision) || 0
       };
 
       try {
