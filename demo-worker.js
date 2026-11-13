@@ -230,6 +230,7 @@ function updateGuest(session, guestId, patch) {
     "last_name",
     "patronymic",
     "salutation_type",
+    "greeting_style",
     "role",
     "group_name"
   ];
