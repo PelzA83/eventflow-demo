@@ -116,7 +116,7 @@ function createInitialState(productType = "corporate") {
 
       const isVisible = [
         "greeting", "invitation_text", "event_info",
-        "dress_code", "menu", "getting_there", "rsvp"
+        "dress_code", "menu", "getting_there", "rsvp", "qr_code"
       ].includes(block_key) ||
       (isWedding && ["gifts_wishes", "seating"].includes(block_key));
 
