@@ -142,6 +142,12 @@
       letter-spacing: .09em;
       text-transform: uppercase;
     }
+    .product-group-description {
+      margin-top: -4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
     .product-options {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -280,6 +286,7 @@
       <div class="product-catalog" aria-label="Направления EventFlow">
         <section class="product-group" aria-labelledby="celebrationsTitle">
           <div class="product-group-title" id="celebrationsTitle">Торжества</div>
+          <p class="product-group-description">Приглашения для личных праздников — от первого обращения до подтверждения гостей.</p>
           <fieldset class="product-options" aria-label="Торжества">
             <label class="product-option">
               <input type="radio" name="productType" value="wedding" checked>
@@ -295,6 +302,7 @@
 
         <section class="product-group" aria-labelledby="eventsTitle">
           <div class="product-group-title" id="eventsTitle">Мероприятия</div>
+          <p class="product-group-description">Инструменты для приглашения, регистрации и координации участников событий.</p>
           <fieldset class="product-options" aria-label="Мероприятия">
             <label class="product-option">
               <input type="radio" name="productType" value="corporate">
@@ -310,6 +318,7 @@
 
         <section class="product-group" aria-labelledby="certificatesTitle">
           <div class="product-group-title" id="certificatesTitle">Сертификаты</div>
+          <p class="product-group-description">Цифровые сертификаты для оформления и вручения услуг или подарков.</p>
           <fieldset class="product-options" aria-label="Сертификаты">
             <div class="product-option disabled" aria-disabled="true">
               <span class="product-dot" aria-hidden="true"></span>
