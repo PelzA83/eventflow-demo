@@ -1208,6 +1208,7 @@ input:focus {
 <script>
 const params = new URLSearchParams(window.location.search);
 const contextId = params.get('context') || '';
+const productType = params.get('product') === 'wedding' ? 'wedding' : 'corporate';
 let demoPort = null;
 let demoState = null;
 let dashboardGuests = [];
@@ -1950,7 +1951,7 @@ function connectDemoSession() {
     };
 
     demoPort.start();
-    demoPort.postMessage({ type: 'init', contextId });
+    demoPort.postMessage({ type: 'init', contextId, productType });
     setDashboardMessage('Подключаемся к демосессии…');
   } catch (error) {
     console.error('EventFlow demo connection error:', error);
