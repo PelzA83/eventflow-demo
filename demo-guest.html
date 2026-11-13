@@ -1213,7 +1213,7 @@
         salutation = 'Здравствуйте';
       }
 
-      heading.textContent = salutation;
+      heading.textContent = salutation === 'Здравствуйте' ? 'Здравствуйте,' : salutation;
       heading.hidden = !salutation;
 
       names.forEach((guest, index) => {
