@@ -603,6 +603,49 @@ input:focus {
   font-weight: 700;
   letter-spacing: .5px;
 }
+
+.demo-module { padding: 26px 28px; }
+.demo-module-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+.demo-eyebrow { display:block; color:var(--accent); font-size:10px; font-weight:700; letter-spacing:1.6px; margin-bottom:8px; }
+.demo-state { display:inline-flex; padding:7px 10px; border-radius:20px; background:#f1eee7; color:#74694f; font-size:10px; white-space:nowrap; }
+.mailing-summary { display:grid; grid-template-columns: minmax(110px,.7fr) minmax(0,1.3fr); gap:22px; align-items:center; padding:20px; border:1px solid var(--border); border-radius:12px; background:#fcfbf8; }
+.mailing-total strong,.checkin-number strong { display:block; font:400 34px 'Playfair Display',serif; }
+.mailing-total span,.checkin-number span { display:block; color:var(--muted); font-size:11px; margin-top:4px; }
+.mailing-progress-label { display:flex; justify-content:space-between; gap:10px; font-size:11px; margin-bottom:9px; }
+.mailing-progress { height:7px; border-radius:9px; overflow:hidden; background:#e9e6df; }
+.mailing-progress span { display:block; height:100%; border-radius:9px; background:#81927e; }
+.demo-list { margin-top:18px; }
+.demo-list-row { display:flex; align-items:center; gap:10px; min-height:42px; padding:9px 0; border-top:1px solid #efede8; color:#69675f; font-size:12px; }
+.demo-list-row strong { margin-left:auto; color:var(--text); font-size:11px; font-weight:600; text-align:right; }
+.demo-dot { width:8px; height:8px; flex:0 0 8px; border-radius:50%; background:#c9c6bd; }
+.demo-dot.done { background:#6e9478; }.demo-dot.pending { background:#c49a52; }.demo-dot.neutral { background:#aaa69a; }
+.seating-demo { padding:20px; border:1px solid var(--border); border-radius:12px; background:#fcfbf8; }
+.seating-demo-stage { width:62%; margin:0 auto 22px; padding:10px; border:1px dashed #c9c1b2; border-radius:8px; color:#817c6e; text-align:center; font-size:9px; letter-spacing:1.5px; }
+.seating-demo-floor { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; max-width:560px; margin:auto; }
+.demo-table { aspect-ratio:1; width:100%; max-width:110px; justify-self:center; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #c9c1b2; border-radius:50%; background:#f2efe8; box-shadow:inset 0 0 0 6px #fcfbf8; }
+.demo-table b { font:400 24px 'Playfair Display',serif; }.demo-table small { color:var(--muted); font-size:9px; margin-top:2px; }
+.seating-demo-legend { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:20px; color:var(--muted); font-size:10px; }
+.seating-demo-legend i { display:inline-block; width:8px; height:8px; border-radius:50%; background:#c9c1b2; margin-right:5px; }
+.checkin-demo { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr); gap:24px; align-items:center; padding:20px; border:1px solid var(--border); border-radius:12px; background:#fcfbf8; }
+.checkin-visual { min-height:190px; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; background:#efede7; }
+.scan-frame { position:relative; width:105px; height:105px; border:2px solid #8b8068; border-radius:12px; }
+.scan-frame:before,.scan-frame:after,.scan-frame span:before,.scan-frame span:after { content:""; position:absolute; width:22px; height:22px; border:4px solid #8b8068; }
+.scan-frame:before { top:8px; left:8px; border-right:0; border-bottom:0; }.scan-frame:after { top:8px; right:8px; border-left:0; border-bottom:0; }.scan-frame span:before { bottom:8px; left:8px; border-right:0; border-top:0; }.scan-frame span:after { bottom:8px; right:8px; border-left:0; border-top:0; }
+.checkin-visual-caption { margin-top:12px; color:#817c6e; font-size:9px; letter-spacing:2px; }
+.checkin-details .demo-list { margin-top:12px; }.checkin-number { display:inline-block; width:48%; padding-bottom:12px; }
+.after-event-demo { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
+.thankyou-card { padding:24px 20px; border:1px solid #e7e1d5; background:linear-gradient(145deg,#fbf8f0,#f0ece2); text-align:center; }
+.thankyou-mark { color:#9a8b6b; font-size:22px; }.thankyou-card h3 { margin:12px 0; font:400 23px 'Playfair Display',serif; }.thankyou-card p { margin:0; color:#77746b; font:13px/1.7 'DM Sans',sans-serif; }.thankyou-signature { display:block; margin-top:16px; color:#8b8068; font:italic 13px 'Playfair Display',serif; }
+.demo-gallery { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:8px; min-height:220px; }.gallery-tile { display:flex; align-items:flex-end; padding:10px; color:rgba(60,55,45,.55); font-size:10px; background:linear-gradient(145deg,#d8d2c4,#eee9df); }.gallery-one { grid-row:span 2; background:linear-gradient(145deg,#c9c0af,#e9e3d8); }.gallery-two { background:linear-gradient(145deg,#d9d0c0,#f2eee6); }.gallery-three { background:linear-gradient(145deg,#c6c5b8,#e8e6dc); }
+.stats-preview { display:grid; gap:18px; padding:20px; border:1px solid var(--border); border-radius:12px; background:#fcfbf8; }.stats-preview-row { display:grid; grid-template-columns:minmax(120px,1fr) minmax(90px,2fr) 36px; gap:12px; align-items:center; color:#69675f; font-size:11px; }.stats-preview-row strong { color:var(--text); text-align:right; font-size:11px; }.stats-preview-row > div { height:8px; border-radius:8px; overflow:hidden; background:#e9e6df; }.stats-bar { display:block; height:100%; border-radius:8px; }.confirmed-bar { background:#81927e; }.pending-bar { background:#c8a86c; }.declined-bar { background:#c58a7e; }
+@media (max-width: 550px) {
+  .demo-module { padding:19px 16px; }
+  .mailing-summary,.checkin-demo,.after-event-demo { grid-template-columns:1fr; }
+  .seating-demo-floor { gap:9px; }
+  .stats-preview-row { grid-template-columns:1fr 1fr 30px; gap:8px; }
+  .demo-list-row { font-size:11px; }
+}
+
 @media (max-width: 760px) {
   .dashboard-shell { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .dashboard-nav {
@@ -958,41 +1001,79 @@ input:focus {
 
 
         <section class="dashboard-section" id="section-mailing" data-section-panel="mailing">
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">➤</div>
-            <h2>Рассылка приглашений</h2>
-            <p>Здесь будут инструменты подготовки, отправки и повторной отправки персональных приглашений, а также контроль статусов доставки.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          <section class="panel demo-module">
+            <div class="demo-module-head">
+              <div><span class="demo-eyebrow">ЭТАП 04</span><h2>Рассылка приглашений</h2></div>
+              <span class="demo-state">Пример оформления</span>
+            </div>
+            <p class="blocks-description">Здесь будет отображаться подготовка приглашений и ход их отправки. Сейчас это визуальный пример без фактической рассылки.</p>
+            <div class="mailing-summary">
+              <div class="mailing-total"><strong>24</strong><span>приглашения в списке</span></div>
+              <div class="mailing-progress-wrap"><div class="mailing-progress-label"><span>Подготовлено</span><strong>18 из 24</strong></div><div class="mailing-progress"><span style="width:75%"></span></div></div>
+            </div>
+            <div class="demo-list">
+              <div class="demo-list-row"><span class="demo-dot done"></span><span>Персональные приглашения</span><strong>18</strong></div>
+              <div class="demo-list-row"><span class="demo-dot pending"></span><span>Ожидают подготовки</span><strong>6</strong></div>
+              <div class="demo-list-row"><span class="demo-dot neutral"></span><span>Каналы отправки</span><strong>Telegram · WhatsApp · Email</strong></div>
+            </div>
           </section>
         </section>
 
 
         <section class="dashboard-section" id="section-seating" data-section-panel="seating">
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">▤</div>
-            <h2>План рассадки</h2>
-            <p>Здесь будет редактор схемы размещения гостей: столы, места и распределение приглашённых с отображением плана в приглашении.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          <section class="panel demo-module">
+            <div class="demo-module-head">
+              <div><span class="demo-eyebrow">ЭТАП 05</span><h2>План рассадки</h2></div>
+              <span class="demo-state">Визуальный пример</span>
+            </div>
+            <p class="blocks-description">Схематичное расположение столов и примерная вместимость. Автоматического распределения гостей и редактора рассадки пока нет.</p>
+            <div class="seating-demo">
+              <div class="seating-demo-stage">СЦЕНА / ТАНЦПОЛ</div>
+              <div class="seating-demo-floor">
+                <div class="demo-table"><b>1</b><small>8 мест</small></div>
+                <div class="demo-table"><b>2</b><small>8 мест</small></div>
+                <div class="demo-table"><b>3</b><small>10 мест</small></div>
+                <div class="demo-table"><b>4</b><small>8 мест</small></div>
+                <div class="demo-table"><b>5</b><small>10 мест</small></div>
+                <div class="demo-table"><b>6</b><small>8 мест</small></div>
+              </div>
+              <div class="seating-demo-legend"><span><i></i> Столы гостей</span><span>Примерная вместимость: 52 места</span></div>
+            </div>
           </section>
         </section>
 
 
         <section class="dashboard-section" id="section-event-day" data-section-panel="event-day">
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">▦</div>
-            <h2>Контроль входа по QR-кодам</h2>
-            <p>Здесь будет сканер QR-кодов приглашений и журнал регистрации гостей. Можно будет проверять состав приглашения и отмечать фактическое прибытие участников.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          <section class="panel demo-module">
+            <div class="demo-module-head">
+              <div><span class="demo-eyebrow">ЭТАП 06</span><h2>День мероприятия</h2></div>
+              <span class="demo-state">Визуальный пример</span>
+            </div>
+            <p class="blocks-description">Экран будущего контроля входа. Сканирование и регистрация прибытия пока не подключены.</p>
+            <div class="checkin-demo">
+              <div class="checkin-visual"><div class="scan-frame"><span></span></div><div class="checkin-visual-caption">QR CHECK-IN</div></div>
+              <div class="checkin-details">
+                <div class="checkin-number"><strong>18</strong><span>подтвердили участие</span></div>
+                <div class="checkin-number"><strong>24</strong><span>приглашено гостей</span></div>
+                <div class="demo-list-row"><span class="demo-dot pending"></span><span>Регистрация гостей</span><strong>Ожидает события</strong></div>
+                <div class="demo-list-row"><span class="demo-dot neutral"></span><span>Журнал входа</span><strong>Пока пуст</strong></div>
+              </div>
+            </div>
           </section>
         </section>
 
 
         <section class="dashboard-section" id="section-after-event" data-section-panel="after-event">
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">✧</div>
-            <h2>После мероприятия</h2>
-            <p>Здесь будут инструменты для отправки благодарностей гостям и публикации фотографий, видео и других материалов с мероприятия.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          <section class="panel demo-module">
+            <div class="demo-module-head">
+              <div><span class="demo-eyebrow">ЭТАП 07</span><h2>После мероприятия</h2></div>
+              <span class="demo-state">Визуальный пример</span>
+            </div>
+            <p class="blocks-description">Пример будущего пространства для благодарности гостям и публикации фотографий и видео с события.</p>
+            <div class="after-event-demo">
+              <div class="thankyou-card"><span class="thankyou-mark">✦</span><h3>Спасибо, что были с нами!</h3><p>Ваше присутствие сделало этот день по-настоящему особенным. Мы будем рады сохранить воспоминания об этом событии вместе с вами.</p><span class="thankyou-signature">С теплом, организаторы</span></div>
+              <div class="demo-gallery"><div class="gallery-tile gallery-one"><span>01</span></div><div class="gallery-tile gallery-two"><span>02</span></div><div class="gallery-tile gallery-three"><span>03</span></div></div>
+            </div>
           </section>
         </section>
 
@@ -1004,11 +1085,17 @@ input:focus {
             <div class="stat declined"><div class="stat-number" id="declinedGuests">—</div><div class="stat-label">Не придут</div></div>
             <div class="stat pending"><div class="stat-number" id="pendingGuests">—</div><div class="stat-label">Ожидают ответа</div></div>
           </div>
-          <section class="panel placeholder-panel">
-            <div class="placeholder-icon">▥</div>
-            <h2>Статистика мероприятия</h2>
-            <p>Здесь появится подробная аналитика по ответам гостей, семейным группам, подтверждениям, отказам и фактической посещаемости.</p>
-            <span class="placeholder-status">ФУНКЦИОНАЛЬНОСТЬ ГОТОВИТСЯ</span>
+          <section class="panel demo-module">
+            <div class="demo-module-head">
+              <div><span class="demo-eyebrow">ОБЗОР</span><h2>Статистика мероприятия</h2></div>
+              <span class="demo-state">Дополнительная аналитика — пример</span>
+            </div>
+            <p class="blocks-description">Подробные отчёты, фильтры и выгрузки появятся на следующем этапе. Верхние показатели уже отражают текущий список гостей этой демосессии.</p>
+            <div class="stats-preview">
+              <div class="stats-preview-row"><span>Подтвердили участие</span><div><i class="stats-bar confirmed-bar" style="width:72%"></i></div><strong>72%</strong></div>
+              <div class="stats-preview-row"><span>Пока не ответили</span><div><i class="stats-bar pending-bar" style="width:20%"></i></div><strong>20%</strong></div>
+              <div class="stats-preview-row"><span>Отказались</span><div><i class="stats-bar declined-bar" style="width:8%"></i></div><strong>8%</strong></div>
+            </div>
           </section>
         </section>
             </main>
