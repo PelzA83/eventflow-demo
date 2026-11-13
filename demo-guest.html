@@ -966,6 +966,34 @@
 
     // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
 
+    function inferSalutationType(firstName) {
+      const name = String(firstName || '').trim().toLocaleLowerCase('ru-RU').replace(/ё/g, 'е');
+      if (!name) return null;
+
+      const femaleNames = new Set((
+        'александра алла анастасия анна арина валентина валерия варвара вера виктория галина дарья ева екатерина елена елизавета жанна зоя инна ирина карина клавдия ксения лариса любовь людмила маргарита марина мария надежда наталья нина ольга полина светлана софия татьяна юлия ярослава'
+      ).split(' '));
+      const maleNames = new Set((
+        'александр алексей андрей антон артем артур борис вадим валентин валерий василий виктор виталий владимир владислав вячеслав геннадий георгий григорий даниил данила денис дмитрий евгений егор иван игорь илья кирилл константин лев леонид макар максим михаил никита николай олег павел роман руслан семен сергей станислав степан тимофей федор юрий ярослав'
+      ).split(' '));
+
+      if (femaleNames.has(name)) return 'female';
+      if (maleNames.has(name)) return 'male';
+
+      // Осторожные правила для распространённых окончаний; неизвестные имена остаются без гендерного предположения.
+      if (/(ия|ея)$/.test(name)) return 'female';
+      if (/[ая]$/.test(name)) return 'female';
+      if (/(ий|ей)$/.test(name)) return 'male';
+      return null;
+    }
+
+    function resolveSalutationType(guest) {
+      if (['male', 'female'].includes(guest.salutation_type)) {
+        return guest.salutation_type;
+      }
+      return inferSalutationType(guest.first_name);
+    }
+
     function renderGreeting(group, guests, content = {}, settings = {}) {
       const isRespectful = (guests.length === 1
         ? guests[0].greeting_style || group?.greeting_style
@@ -1003,9 +1031,9 @@
 
       const names = personalization === 'examples'
         ? [
-            { first_name: 'Александр' },
-            { first_name: 'Мария' },
-            { first_name: 'Максим' }
+            { first_name: 'Александр', salutation_type: 'auto' },
+            { first_name: 'Мария', salutation_type: 'auto' },
+            { first_name: 'Максим', salutation_type: 'auto' }
           ]
         : personalization === 'real'
           ? guests.filter(guest => typeof guest.first_name === 'string' && guest.first_name.trim())
@@ -1018,27 +1046,27 @@
         return;
       }
 
-      let salutation;
+      const resolvedTypes = names.map(resolveSalutationType);
+      let salutation = '';
       if (names.length > 1) {
         salutation = isRespectful ? 'Уважаемые' : 'Дорогие';
-      } else if (isRespectful) {
-        salutation = names[0].salutation_type === 'female' ? 'Уважаемая' : 'Уважаемый';
-      } else {
-        salutation = names[0].salutation_type === 'female' ? 'Дорогая' : 'Дорогой';
+      } else if (resolvedTypes[0] === 'female') {
+        salutation = isRespectful ? 'Уважаемая' : 'Дорогая';
+      } else if (resolvedTypes[0] === 'male') {
+        salutation = isRespectful ? 'Уважаемый' : 'Дорогой';
       }
 
-      heading.appendChild(document.createTextNode(salutation + ' '));
+      if (salutation) heading.appendChild(document.createTextNode(salutation + ' '));
 
       names.forEach((guest, index) => {
         const name = document.createElement('span');
         name.className = 'greeting-name';
 
         const nameParts = [guest.first_name.trim()];
-
         if (
           personalization === 'real' &&
           isRespectful &&
-          ['male', 'female'].includes(guest.salutation_type) &&
+          resolvedTypes[index] &&
           typeof guest.patronymic === 'string' &&
           guest.patronymic.trim()
         ) {
