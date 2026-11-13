@@ -974,10 +974,12 @@
         ? invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
         : state.guests.some(guest => guest.participant_status !== 'excluded' && guest.rsvp_status === 'confirmed');
 
-      // Персональные сведения доступны только по персональной ссылке
-      // тому гостю, который сам подтвердил участие.
+      // Персональная карточка места доступна по индивидуальному приглашению
+      // или персональной переходной ссылке после подтверждения гостя.
+      const isSingleGuestInvitation = Boolean(invitationId && invitationGuests.length === 1);
       const canSeePersonalParticipantInfo = Boolean(
-        guestId && invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
+        (guestId || isSingleGuestInvitation) &&
+        invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
       );
 
       const preDecisionKeys = new Set([
