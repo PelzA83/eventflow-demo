@@ -329,6 +329,49 @@ input:focus {
 .guest-list-panel .stats {
   margin-bottom: 24px;
 }
+.invitation-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  background: #fff;
+}
+.invitation-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.invitation-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+}
+.invitation-card-meta {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.invitation-add-member {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--text);
+  padding: 8px 11px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.invitation-card .guest {
+  border-top: 1px solid #f0eee8;
+  padding: 12px 0 0;
+  margin-top: 12px;
+}
+.invitation-card .guest:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
 .panel-head {
   display: flex;
   justify-content: space-between;
@@ -1111,6 +1154,7 @@ let demoState = null;
 let dashboardGuests = [];
 let currentGuestFilter = 'all';
 let editingGuestId = null;
+let addingToInvitationId = null;
 
 function setDashboardSection(section) {
   const allowedSections = [
@@ -1159,6 +1203,26 @@ function setGuestFilter(filter) {
   renderGuests(dashboardGuests);
 }
 
+function getInvitationLabel(invitation, guests) {
+  if (invitation?.internal_name) return invitation.internal_name;
+  const surnames = [...new Set(guests.map(guest => guest.last_name).filter(Boolean))];
+  if (surnames.length === 1) return 'Семья ' + surnames[0];
+  if (surnames.length > 1) return 'Группа гостей';
+  return 'Приглашение';
+}
+
+function startAddParticipant(invitationId) {
+  addingToInvitationId = invitationId;
+  editingGuestId = null;
+  document.getElementById('guestForm').reset();
+  document.getElementById('guestFormTitle').textContent = 'Новый участник приглашения';
+  document.getElementById('guestFormDescription').textContent =
+    'Добавьте участника в существующее приглашение. Ссылка и ответы остальных участников сохранятся.';
+  document.getElementById('guestFormSubmit').textContent = 'Добавить участника';
+  document.getElementById('guestFormMessage').textContent = '';
+  toggleGuestForm(true);
+}
+
 function renderGuests(guests) {
   dashboardGuests = Array.isArray(guests) ? guests : [];
   const list = document.getElementById('guestList');
@@ -1178,59 +1242,97 @@ function renderGuests(guests) {
     return;
   }
 
+  const invitations = Array.isArray(demoState?.invitations) ? demoState.invitations : [];
+  const groups = new Map();
   filteredGuests.forEach(guest => {
-    const row = document.createElement('div');
-    row.className = 'guest';
+    const key = guest.invitation_id || 'legacy-' + guest.id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(guest);
+  });
 
-    const details = document.createElement('div');
-    const name = document.createElement('div');
-    name.className = 'guest-name';
+  groups.forEach((members, invitationId) => {
+    const invitation = invitations.find(item => item.id === invitationId);
+    const card = document.createElement('section');
+    card.className = 'invitation-card';
 
-    const nameParts = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean);
-    name.textContent = nameParts.join(' ') || 'Без имени';
-    details.appendChild(name);
+    const head = document.createElement('div');
+    head.className = 'invitation-card-head';
+    const titleWrap = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'invitation-card-title';
+    title.textContent = getInvitationLabel(invitation, members);
+    const meta = document.createElement('div');
+    meta.className = 'invitation-card-meta';
+    const allMembersCount = dashboardGuests.filter(guest =>
+      guest.invitation_id === invitationId && guest.participant_status !== 'excluded'
+    ).length;
+    meta.textContent = (allMembersCount || members.length) + ' ' +
+      ((allMembersCount || members.length) === 1 ? 'участник' :
+       (allMembersCount || members.length) < 5 ? 'участника' : 'участников');
+    titleWrap.append(title, meta);
 
-    if (guest.group_name || demoState?.group?.name) {
-      const group = document.createElement('div');
-      group.className = 'hint';
-      group.textContent = guest.group_name || demoState.group.name;
-      details.appendChild(group);
-    }
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'invitation-add-member';
+    addButton.textContent = 'Добавить участника';
+    addButton.addEventListener('click', () => startAddParticipant(invitationId));
+    head.append(titleWrap, addButton);
+    card.appendChild(head);
 
-    const status = document.createElement('span');
-    status.className = 'status';
-    if (guest.rsvp_status === 'confirmed') {
-      status.classList.add('yes');
-      status.textContent = 'Придёт';
-    } else if (guest.rsvp_status === 'declined') {
-      status.classList.add('no');
-      status.textContent = 'Не сможет';
-    } else {
-      status.classList.add('pending');
-      status.textContent = 'Ожидаем ответ';
-    }
+    members.forEach(guest => {
+      const row = document.createElement('div');
+      row.className = 'guest';
 
-    const actions = document.createElement('div');
-    actions.className = 'guest-row-actions';
+      const details = document.createElement('div');
+      const name = document.createElement('div');
+      name.className = 'guest-name';
+      const nameParts = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean);
+      name.textContent = nameParts.join(' ') || 'Без имени';
+      details.appendChild(name);
 
-    const linkButton = document.createElement('button');
-    linkButton.type = 'button';
-    linkButton.className = 'guest-link-button';
-    linkButton.textContent = 'Ссылка';
-    linkButton.setAttribute('aria-label', 'Скопировать персональную ссылку для ' + name.textContent);
-    linkButton.addEventListener('click', () => copyGuestInvitationLink(guest.id, linkButton));
-    actions.appendChild(linkButton);
+      if (guest.group_name || demoState?.group?.name) {
+        const group = document.createElement('div');
+        group.className = 'hint';
+        group.textContent = guest.group_name || demoState.group.name;
+        details.appendChild(group);
+      }
 
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'guest-edit-button';
-    editButton.textContent = 'Редактировать';
-    editButton.setAttribute('aria-label', 'Редактировать данные гостя ' + name.textContent);
-    editButton.addEventListener('click', () => editGuest(guest.id));
-    actions.appendChild(editButton);
+      const status = document.createElement('span');
+      status.className = 'status';
+      if (guest.rsvp_status === 'confirmed') {
+        status.classList.add('yes');
+        status.textContent = 'Придёт';
+      } else if (guest.rsvp_status === 'declined') {
+        status.classList.add('no');
+        status.textContent = 'Не сможет';
+      } else {
+        status.classList.add('pending');
+        status.textContent = 'Ожидаем ответ';
+      }
 
-    row.append(details, status, actions);
-    list.appendChild(row);
+      const actions = document.createElement('div');
+      actions.className = 'guest-row-actions';
+      const linkButton = document.createElement('button');
+      linkButton.type = 'button';
+      linkButton.className = 'guest-link-button';
+      linkButton.textContent = 'Ссылка';
+      linkButton.setAttribute('aria-label', 'Скопировать персональную ссылку для ' + name.textContent);
+      linkButton.addEventListener('click', () => copyGuestInvitationLink(guest.id, linkButton));
+      actions.appendChild(linkButton);
+
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'guest-edit-button';
+      editButton.textContent = 'Редактировать';
+      editButton.setAttribute('aria-label', 'Редактировать данные гостя ' + name.textContent);
+      editButton.addEventListener('click', () => editGuest(guest.id));
+      actions.appendChild(editButton);
+
+      row.append(details, status, actions);
+      card.appendChild(row);
+    });
+
+    list.appendChild(card);
   });
 }
 
@@ -1523,6 +1625,7 @@ function toggleGuestForm(show) {
     document.getElementById('guestForm').reset();
     document.getElementById('guestFormMessage').textContent = '';
     editingGuestId = null;
+    addingToInvitationId = null;
     document.getElementById('guestFormTitle').textContent = 'Новый гость';
     document.getElementById('guestFormDescription').textContent =
       'Заполните данные приглашённого. Изменения сразу обновятся в его персональном приглашении.';
@@ -1535,6 +1638,7 @@ function editGuest(guestId) {
   if (!guest) return;
 
   editingGuestId = guest.id;
+  addingToInvitationId = null;
   document.getElementById('newGuestFullName').value =
     [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
   document.getElementById('newGuestGroup').value = guest.group_name || '';
@@ -1584,6 +1688,9 @@ document.getElementById('guestForm').addEventListener('submit', event => {
     first_name: nameParts[1],
     patronymic: nameParts.slice(2).join(' '),
     group_name: document.getElementById('newGuestGroup').value.trim(),
+    internal_name: document.getElementById('newGuestGroup').value.trim() ||
+      ('Семья ' + nameParts[0]),
+    invitation_id: addingToInvitationId || undefined,
     salutation_type: document.getElementById('newGuestSalutation').value,
     greeting_style: document.getElementById('newGuestGreetingStyle').value
   };
@@ -1597,7 +1704,9 @@ document.getElementById('guestForm').addEventListener('submit', event => {
     message.textContent = 'Данные гостя обновлены.';
   } else {
     demoPort.postMessage({ type: 'add-guest', fields });
-    message.textContent = 'Гость добавлен в список демосессии.';
+    message.textContent = addingToInvitationId
+      ? 'Участник добавлен в существующее приглашение.'
+      : 'Гость добавлен в список демосессии.';
   }
 
   toggleGuestForm(false);
