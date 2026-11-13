@@ -318,6 +318,50 @@ function addGuest(session, fields) {
   return true;
 }
 
+function createInvitationWithGuests(session, fields) {
+  if (!isPlainObject(fields) || !Array.isArray(fields.participants) || fields.participants.length < 1) {
+    return false;
+  }
+
+  const participants = fields.participants.map(participant => {
+    if (!isPlainObject(participant)) return null;
+    const firstName = String(participant.first_name || "").trim();
+    const lastName = String(participant.last_name || "").trim();
+    if (!firstName || !lastName) return null;
+    return {
+      first_name: firstName,
+      last_name: lastName,
+      patronymic: String(participant.patronymic || "").trim(),
+      salutation_type: ["male", "female"].includes(participant.salutation_type)
+        ? participant.salutation_type : "auto",
+      greeting_style: participant.greeting_style === "informal" ? "informal" : "respectful"
+    };
+  });
+
+  // Проверяем весь набор до любых изменений состояния: создание атомарно.
+  if (participants.some(participant => participant === null)) return false;
+
+  const invitation = createInvitation(session.state, {
+    internal_name: String(fields.internal_name || "").trim()
+  });
+  for (const participant of participants) {
+    const guestId = createRecordId("guest");
+    session.state.guests.push({
+      id: guestId,
+      invitation_id: invitation.id,
+      participant_status: "active",
+      excluded_at: null,
+      ...participant,
+      role: "guest",
+      group_name: String(session.state.group?.name || "").trim(),
+      attendance: null,
+      rsvp_status: "pending",
+      responded_at: null
+    });
+  }
+  return true;
+}
+
 function updateGuest(session, guestId, patch) {
   if (!isPlainObject(patch)) return false;
 
@@ -388,6 +432,9 @@ function applyMessage(session, message) {
 
     case "add-guest":
       return addGuest(session, message.fields);
+
+    case "create-invitation":
+      return createInvitationWithGuests(session, message.fields);
 
     case "update-guest":
       return updateGuest(session, String(message.guestId || ""), message.patch);
