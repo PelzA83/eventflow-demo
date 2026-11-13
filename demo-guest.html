@@ -761,8 +761,8 @@
     <section class="event-block" id="block-gifts-wishes" data-block-key="gifts_wishes" hidden>
       <section class="details gifts-wishes">
         <div class="gift-ornament" aria-hidden="true">✦</div>
-        <h2>Подарки и пожелания</h2>
-        <p class="gifts-intro">Самое главное для нас — разделить этот день с вами. Если вы захотите сделать нам подарок, будем благодарны за внимание к нашим небольшим пожеланиям.</p>
+        <h2 id="gifts-title">Подарки и пожелания</h2>
+        <p class="gifts-intro" id="gifts-intro">Самое главное для нас — разделить этот день с вами. Если вы захотите сделать нам подарок, будем благодарны за внимание к нашим небольшим пожеланиям.</p>
         <div class="gift-note"><span class="gift-note-kicker">О ПОДАРКАХ</span><p>Будем рады вкладу в наше общее семейное путешествие. Конверт станет самым удобным способом поздравить нас.</p></div>
         <div class="gift-note"><span class="gift-note-kicker">ВАШИ ПОЖЕЛАНИЯ</span><p>Оставьте добрые слова и пожелания — мы с удовольствием сохраним их на память об этом дне.</p></div>
       </section>
@@ -770,10 +770,10 @@
 
     <section class="event-block" id="block-getting-there" data-block-key="getting_there" hidden>
       <section class="details getting-there">
-        <h2>Как добраться</h2>
-        <p class="arrival-intro">Будем рады видеть вас на мероприятии. Ниже — несколько подсказок, которые помогут спокойно спланировать дорогу.</p>
+        <h2 id="arrival-title">Как добраться</h2>
+        <p class="arrival-intro" id="arrival-intro">Будем рады видеть вас на мероприятии. Ниже — несколько подсказок, которые помогут спокойно спланировать дорогу.</p>
         <div class="arrival-card">
-          <div class="arrival-route-list">
+          <div class="arrival-route-list" id="arrival-routes">
             <div class="arrival-route"><span class="arrival-route-number">01</span><div><span class="arrival-route-label">НА АВТОМОБИЛЕ ИЛИ ТАКСИ</span><p>Заложите немного времени на дорогу. Если планируете оставить автомобиль рядом с площадкой, заранее уточните условия парковки.</p></div></div>
             <div class="arrival-route"><span class="arrival-route-number">02</span><div><span class="arrival-route-label">ОБЩЕСТВЕННЫЙ ТРАНСПОРТ</span><p>Выбирайте маршрут до остановки рядом с местом проведения. Перед выездом проверьте актуальное расписание и удобный путь.</p></div></div>
             <div class="arrival-route"><span class="arrival-route-number">03</span><div><span class="arrival-route-label">НА ВХОДЕ</span><p>Если возникнут вопросы по проходу на площадку, обратитесь к организаторам — вам обязательно помогут.</p></div></div>
@@ -974,6 +974,14 @@
       renderSeating(
         getBlock('seating').content?.data || {},
         getBlock('seating').settings?.data || {}
+      );
+      renderGiftsWishes(
+        getBlock('gifts_wishes').content?.data || {},
+        getBlock('gifts_wishes').settings?.data || {}
+      );
+      renderGettingThere(
+        getBlock('getting_there').content?.data || {},
+        getBlock('getting_there').settings?.data || {}
       );
       const qrInvitationId = invitationId || invitationGuests[0]?.invitation_id || '';
       const qrInvitation = (state.invitations || []).find(item => item.id === qrInvitationId) || null;
@@ -1736,6 +1744,81 @@
       );
       block.hidden = !isConfiguredVisible || !hasContent;
       title.hidden = title.hidden || !hasContent;
+    }
+
+    function renderGiftsWishes(content = {}, settings = {}) {
+      const block = document.getElementById('block-gifts-wishes');
+      const section = block.querySelector('.gifts-wishes');
+      const title = document.getElementById('gifts-title');
+      const intro = document.getElementById('gifts-intro');
+      const titleText = typeof content.title === 'string' ? content.title.trim() : '';
+      title.textContent = titleText || 'Подарки и пожелания';
+      intro.textContent = typeof content.intro === 'string' ? content.intro.trim() : '';
+      intro.hidden = !intro.textContent;
+      section.style.textAlign = ['left','center','right'].includes(settings.alignment) ? settings.alignment : 'center';
+
+      block.querySelectorAll('.gift-note').forEach(note => note.remove());
+      const notes = Array.isArray(content.notes) ? content.notes : [];
+      notes.forEach(note => {
+        if (!note || typeof note !== 'object') return;
+        const labelText = typeof note.label === 'string' ? note.label.trim() : '';
+        const bodyText = typeof note.text === 'string' ? note.text.trim() : '';
+        if (!labelText && !bodyText) return;
+        const card = document.createElement('div');
+        card.className = 'gift-note';
+        if (labelText) {
+          const label = document.createElement('span');
+          label.className = 'gift-note-kicker';
+          label.textContent = labelText;
+          card.appendChild(label);
+        }
+        if (bodyText) {
+          const paragraph = document.createElement('p');
+          paragraph.textContent = bodyText;
+          card.appendChild(paragraph);
+        }
+        section.appendChild(card);
+      });
+    }
+
+    function renderGettingThere(content = {}, settings = {}) {
+      const block = document.getElementById('block-getting-there');
+      const section = block.querySelector('.getting-there');
+      const title = document.getElementById('arrival-title');
+      const intro = document.getElementById('arrival-intro');
+      const routesContainer = document.getElementById('arrival-routes');
+      title.textContent = typeof content.title === 'string' && content.title.trim()
+        ? content.title.trim() : 'Как добраться';
+      intro.textContent = typeof content.description === 'string' ? content.description.trim() : '';
+      intro.hidden = !intro.textContent;
+      section.style.textAlign = ['left','center','right'].includes(settings.alignment) ? settings.alignment : 'center';
+      routesContainer.replaceChildren();
+      const routes = Array.isArray(content.routes) ? content.routes : [];
+      routes.forEach((route, index) => {
+        if (!route || typeof route !== 'object') return;
+        const labelText = typeof route.label === 'string' ? route.label.trim() : '';
+        const bodyText = typeof route.text === 'string' ? route.text.trim() : '';
+        if (!labelText && !bodyText) return;
+        const item = document.createElement('div');
+        item.className = 'arrival-route';
+        const number = document.createElement('span');
+        number.className = 'arrival-route-number';
+        number.textContent = String(index + 1).padStart(2, '0');
+        const body = document.createElement('div');
+        if (labelText) {
+          const label = document.createElement('span');
+          label.className = 'arrival-route-label';
+          label.textContent = labelText;
+          body.appendChild(label);
+        }
+        if (bodyText) {
+          const paragraph = document.createElement('p');
+          paragraph.textContent = bodyText;
+          body.appendChild(paragraph);
+        }
+        item.append(number, body);
+        routesContainer.appendChild(item);
+      });
     }
 
     // ОТОБРАЖЕНИЕ ГОСТЕЙ
