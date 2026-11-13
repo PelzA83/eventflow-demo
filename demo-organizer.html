@@ -461,6 +461,17 @@ input:focus {
 }
 .guest-form-field { min-width: 0; }
 .guest-form-field.full { grid-column: 1 / -1; }
+.invitation-name-field { margin-bottom: 22px; }
+.participants-heading { margin: 8px 0 14px; }
+.participants-heading h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.participants-heading p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.participant-form-card { padding: 15px; margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.participant-form-card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+.participant-form-card-title { font-size:12px; font-weight:700; }
+.remove-participant-field { border:0; background:transparent; color:#a45c50; font-size:11px; cursor:pointer; padding:5px; }
+.add-participant-inline { width:100%; padding:12px; border:1px dashed #c9c1b2; border-radius:8px; background:#fff; color:#5f5b50; font-size:12px; cursor:pointer; }
+.add-participant-inline:hover { background:#f7f5f0; }
+
 .guest-form-field label { margin-bottom: 7px; }
 .guest-form-field input,
 .guest-form-field select {
@@ -978,45 +989,31 @@ input:focus {
       </div>
 
       <div class="guest-actions">
-        <button class="guest-action primary-action" id="toggleGuestFormButton" type="button" aria-expanded="false" aria-controls="guestFormPanel" onclick="toggleGuestForm()">Заполнить список гостей</button>
+        <button class="guest-action primary-action" id="toggleGuestFormButton" type="button" aria-expanded="false" aria-controls="guestFormPanel" onclick="startCreateInvitation()">Создать приглашение</button>
         <button class="guest-action" type="button" disabled>Скачать шаблон Excel</button>
         <button class="guest-action" type="button" disabled>Загрузить список гостей</button>
       </div>
 
       <div class="guest-form-panel" id="guestFormPanel">
-        <h3 class="guest-form-title" id="guestFormTitle">Новый гость</h3>
-        <p class="guest-form-description" id="guestFormDescription">Заполните данные приглашённого. Изменения сразу обновятся в его персональном приглашении.</p>
+        <h3 class="guest-form-title" id="guestFormTitle">Новое приглашение</h3>
+        <p class="guest-form-description" id="guestFormDescription">Сначала заполните участников, которые получат одно общее приглашение.</p>
         <form id="guestForm">
-          <div class="guest-form-grid">
-            <div class="guest-form-field full">
-              <label for="newGuestFullName">Фамилия, имя и отчество *</label>
-              <input id="newGuestFullName" name="full_name" required autocomplete="name" placeholder="Например, Иванов Александр Сергеевич">
-              <div class="guest-form-hint">Введите ФИО одной строкой. При сохранении EventFlow разделит его на отдельные поля.</div>
-            </div>
-            <div class="guest-form-field">
-              <label for="newGuestGroup">Группа гостей</label>
-              <input id="newGuestGroup" name="group_name" placeholder="Например, Семья Ивановых">
-            </div>
-            <div class="guest-form-field">
-              <label for="newGuestSalutation">Род обращения</label>
-              <select id="newGuestSalutation" name="salutation_type">
-                <option value="auto">Определять автоматически</option>
-                <option value="male">Мужской род</option>
-                <option value="female">Женский род</option>
-              </select>
-              <div class="guest-form-hint">EventFlow определит род по имени. Если потребуется, вы сможете изменить его вручную.</div>
-            </div>
-            <div class="guest-form-field">
-              <label for="newGuestGreetingStyle">Стиль приветствия</label>
-              <select id="newGuestGreetingStyle" name="greeting_style">
-                <option value="respectful">Уважительный</option>
-                <option value="informal">Неформальный</option>
-              </select>
+          <div class="guest-form-field full invitation-name-field">
+            <label for="newInvitationName">Внутреннее название приглашения (необязательно)</label>
+            <input id="newInvitationName" name="internal_name" maxlength="120" placeholder="Например, Семья Ивановых">
+            <div class="guest-form-hint">Это название видно только организатору и помогает ориентироваться в списке.</div>
+          </div>
+          <div class="participants-heading">
+            <div>
+              <h4>Участники приглашения</h4>
+              <p>Каждый участник получит собственные поля и сможет отдельно ответить на приглашение.</p>
             </div>
           </div>
+          <div id="participantFields"></div>
+          <button class="add-participant-inline" id="addParticipantFieldButton" type="button" onclick="addParticipantField()">＋ Добавить ещё одного участника</button>
           <div class="guest-form-footer">
             <button class="guest-action" type="button" onclick="toggleGuestForm(false)">Отмена</button>
-            <button class="guest-action primary-action" id="guestFormSubmit" type="submit">Добавить гостя</button>
+            <button class="guest-action primary-action" id="guestFormSubmit" type="submit">Создать приглашение</button>
           </div>
           <div class="guest-form-message" id="guestFormMessage" role="status"></div>
         </form>
@@ -1584,7 +1581,7 @@ function connectDemoSession() {
   }
 
   try {
-    const worker = new SharedWorker('./demo-worker.js?v=13', { name: 'eventflow-demo-v13' });
+    const worker = new SharedWorker('./demo-worker.js?v=14', { name: 'eventflow-demo-v14' });
     demoPort = worker.port;
 
     demoPort.onmessage = event => {
@@ -1609,47 +1606,140 @@ function connectDemoSession() {
   }
 }
 
+function participantCardMarkup(index, guest = null) {
+  const fullName = guest
+    ? [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ')
+    : '';
+  const salutation = ['male', 'female'].includes(guest?.salutation_type)
+    ? guest.salutation_type : 'auto';
+  const greeting = guest?.greeting_style || 'respectful';
+  return `
+    <section class="participant-form-card" data-participant-index="${index}">
+      <div class="participant-form-card-head">
+        <span class="participant-form-card-title">Участник ${index + 1}</span>
+        ${index > 0 && !guest ? '<button class="remove-participant-field" type="button" data-remove-participant>Удалить</button>' : ''}
+      </div>
+      <div class="guest-form-grid">
+        <div class="guest-form-field full">
+          <label>Фамилия, имя и отчество *</label>
+          <input data-field="full_name" required autocomplete="name" placeholder="Например, Иванов Александр Сергеевич" value="${escapeAttribute(fullName)}">
+          <div class="guest-form-hint">Введите ФИО одной строкой.</div>
+        </div>
+        <div class="guest-form-field">
+          <label>Род обращения</label>
+          <select data-field="salutation_type">
+            <option value="auto" ${salutation === 'auto' ? 'selected' : ''}>Определять автоматически</option>
+            <option value="male" ${salutation === 'male' ? 'selected' : ''}>Мужской род</option>
+            <option value="female" ${salutation === 'female' ? 'selected' : ''}>Женский род</option>
+          </select>
+        </div>
+        <div class="guest-form-field">
+          <label>Стиль приветствия</label>
+          <select data-field="greeting_style">
+            <option value="respectful" ${greeting === 'respectful' ? 'selected' : ''}>Уважительный</option>
+            <option value="informal" ${greeting === 'informal' ? 'selected' : ''}>Неформальный</option>
+          </select>
+        </div>
+      </div>
+    </section>`;
+}
+
+function escapeAttribute(value) {
+  return String(value || '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+}
+
+function renumberParticipantFields() {
+  document.querySelectorAll('#participantFields .participant-form-card').forEach((card, index) => {
+    card.dataset.participantIndex = String(index);
+    card.querySelector('.participant-form-card-title').textContent = 'Участник ' + (index + 1);
+    const remove = card.querySelector('[data-remove-participant]');
+    if (remove) remove.disabled = index === 0;
+  });
+}
+
+function addParticipantField(guest = null) {
+  const container = document.getElementById('participantFields');
+  const index = container.querySelectorAll('.participant-form-card').length;
+  container.insertAdjacentHTML('beforeend', participantCardMarkup(index, guest));
+  const card = container.lastElementChild;
+  const remove = card.querySelector('[data-remove-participant]');
+  if (remove) remove.addEventListener('click', () => {
+    card.remove();
+    renumberParticipantFields();
+  });
+}
+
+function startCreateInvitation() {
+  editingGuestId = null;
+  addingToInvitationId = null;
+  document.getElementById('guestForm').reset();
+  document.getElementById('newInvitationName').value = '';
+  document.getElementById('participantFields').replaceChildren();
+  addParticipantField();
+  document.getElementById('guestFormTitle').textContent = 'Новое приглашение';
+  document.getElementById('guestFormDescription').textContent =
+    'Добавьте одного или нескольких участников. Все они будут связаны с одним приглашением.';
+  document.getElementById('guestFormSubmit').textContent = 'Создать приглашение';
+  document.getElementById('addParticipantFieldButton').hidden = false;
+  document.getElementById('newInvitationName').closest('.invitation-name-field').hidden = false;
+  document.getElementById('guestFormMessage').textContent = '';
+  toggleGuestForm(true);
+}
+
+function startAddParticipant(invitationId) {
+  addingToInvitationId = invitationId;
+  editingGuestId = null;
+  document.getElementById('guestForm').reset();
+  document.getElementById('newInvitationName').closest('.invitation-name-field').hidden = true;
+  document.getElementById('participantFields').replaceChildren();
+  addParticipantField();
+  document.getElementById('guestFormTitle').textContent = 'Добавить участника';
+  const invitation = (demoState?.invitations || []).find(item => item.id === invitationId);
+  const members = dashboardGuests.filter(item => item.invitation_id === invitationId && item.participant_status !== 'excluded');
+  document.getElementById('guestFormDescription').textContent =
+    'Новый участник будет добавлен в приглашение «' + getInvitationLabel(invitation, members) + '». Существующие участники и их ответы не изменятся.';
+  document.getElementById('guestFormSubmit').textContent = 'Добавить в это приглашение';
+  document.getElementById('addParticipantFieldButton').hidden = true;
+  document.getElementById('guestFormMessage').textContent = '';
+  toggleGuestForm(true);
+}
+
 function toggleGuestForm(show) {
   const panel = document.getElementById('guestFormPanel');
   const toggleButton = document.getElementById('toggleGuestFormButton');
-  const shouldShow = typeof show === 'boolean'
-    ? show
-    : !panel.classList.contains('open');
-
+  const shouldShow = typeof show === 'boolean' ? show : !panel.classList.contains('open');
   panel.classList.toggle('open', shouldShow);
   toggleButton.setAttribute('aria-expanded', String(shouldShow));
-
-  if (shouldShow) {
-    document.getElementById('newGuestFullName').focus();
-  } else {
+  if (!shouldShow) {
     document.getElementById('guestForm').reset();
+    document.getElementById('participantFields').replaceChildren();
     document.getElementById('guestFormMessage').textContent = '';
+    document.getElementById('newInvitationName').closest('.invitation-name-field').hidden = false;
+    document.getElementById('addParticipantFieldButton').hidden = false;
     editingGuestId = null;
     addingToInvitationId = null;
-    document.getElementById('guestFormTitle').textContent = 'Новый гость';
-    document.getElementById('guestFormDescription').textContent =
-      'Заполните данные приглашённого. Изменения сразу обновятся в его персональном приглашении.';
-    document.getElementById('guestFormSubmit').textContent = 'Добавить гостя';
+  } else {
+    const firstNameField = document.querySelector('#participantFields [data-field="full_name"]');
+    if (firstNameField) firstNameField.focus();
   }
 }
 
 function editGuest(guestId) {
   const guest = dashboardGuests.find(item => item.id === guestId);
   if (!guest) return;
-
   editingGuestId = guest.id;
   addingToInvitationId = null;
-  document.getElementById('newGuestFullName').value =
-    [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
-  document.getElementById('newGuestGroup').value = guest.group_name || '';
-  document.getElementById('newGuestSalutation').value =
-    ['male', 'female'].includes(guest.salutation_type) ? guest.salutation_type : 'auto';
-  document.getElementById('newGuestGreetingStyle').value = guest.greeting_style || 'respectful';
-  
-  document.getElementById('guestFormTitle').textContent = 'Редактирование гостя';
+  document.getElementById('guestForm').reset();
+  document.getElementById('newInvitationName').closest('.invitation-name-field').hidden = true;
+  document.getElementById('participantFields').replaceChildren();
+  addParticipantField(guest);
+  document.getElementById('guestFormTitle').textContent = 'Редактирование участника';
   document.getElementById('guestFormDescription').textContent =
-    'Измените данные приглашённого. Персональная ссылка и сохранённый ответ RSVP останутся прежними.';
+    'Измените данные участника. Его идентификатор и сохранённый ответ RSVP останутся прежними.';
   document.getElementById('guestFormSubmit').textContent = 'Сохранить изменения';
+  document.getElementById('addParticipantFieldButton').hidden = true;
   document.getElementById('guestFormMessage').textContent = '';
   toggleGuestForm(true);
 }
@@ -1669,46 +1759,53 @@ document.getElementById('eventForm').addEventListener('submit', event => {
 
 document.getElementById('guestForm').addEventListener('submit', event => {
   event.preventDefault();
-
   const message = document.getElementById('guestFormMessage');
   if (!demoPort || !demoState) {
     message.textContent = 'Нет подключения к демосессии. Обновите страницу.';
     return;
   }
 
-  const fullName = document.getElementById('newGuestFullName').value.trim();
-  const nameParts = fullName.split(/\s+/).filter(Boolean);
-  if (nameParts.length < 2) {
-    message.textContent = 'Укажите фамилию и имя гостя.';
-    return;
+  const cards = [...document.querySelectorAll('#participantFields .participant-form-card')];
+  const participants = [];
+  for (let index = 0; index < cards.length; index += 1) {
+    const card = cards[index];
+    const fullName = card.querySelector('[data-field="full_name"]').value.trim();
+    const nameParts = fullName.split(/\s+/).filter(Boolean);
+    if (nameParts.length < 2) {
+      message.textContent = 'Укажите фамилию и имя участника ' + (index + 1) + '.';
+      card.querySelector('[data-field="full_name"]').focus();
+      return;
+    }
+    participants.push({
+      last_name: nameParts[0],
+      first_name: nameParts[1],
+      patronymic: nameParts.slice(2).join(' '),
+      salutation_type: card.querySelector('[data-field="salutation_type"]').value,
+      greeting_style: card.querySelector('[data-field="greeting_style"]').value
+    });
   }
 
-  const fields = {
-    last_name: nameParts[0],
-    first_name: nameParts[1],
-    patronymic: nameParts.slice(2).join(' '),
-    group_name: document.getElementById('newGuestGroup').value.trim(),
-    internal_name: document.getElementById('newGuestGroup').value.trim() ||
-      ('Семья ' + nameParts[0]),
-    invitation_id: addingToInvitationId || undefined,
-    salutation_type: document.getElementById('newGuestSalutation').value,
-    greeting_style: document.getElementById('newGuestGreetingStyle').value
-  };
-
   if (editingGuestId) {
+    const participant = participants[0];
     demoPort.postMessage({
       type: 'update-guest',
       guestId: editingGuestId,
-      patch: fields
+      patch: participant
     });
-    message.textContent = 'Данные гостя обновлены.';
+  } else if (addingToInvitationId) {
+    demoPort.postMessage({
+      type: 'add-guest',
+      fields: { ...participants[0], invitation_id: addingToInvitationId }
+    });
   } else {
-    demoPort.postMessage({ type: 'add-guest', fields });
-    message.textContent = addingToInvitationId
-      ? 'Участник добавлен в существующее приглашение.'
-      : 'Гость добавлен в список демосессии.';
+    demoPort.postMessage({
+      type: 'create-invitation',
+      fields: {
+        internal_name: document.getElementById('newInvitationName').value.trim(),
+        participants
+      }
+    });
   }
-
   toggleGuestForm(false);
 });
 
