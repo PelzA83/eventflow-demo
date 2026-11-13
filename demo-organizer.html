@@ -477,6 +477,35 @@ input:focus {
 .remove-participant-field { border:0; background:transparent; color:#a45c50; font-size:11px; cursor:pointer; padding:5px; }
 .add-participant-inline { width:100%; padding:12px; border:1px dashed #c9c1b2; border-radius:8px; background:#fff; color:#5f5b50; font-size:12px; cursor:pointer; }
 .add-participant-inline:hover { background:#f7f5f0; }
+.excluded-participants {
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #faf9f6;
+}
+.excluded-participants h5 { margin: 0; font-size: 12px; font-weight: 700; }
+.excluded-participants > p { margin: 6px 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.excluded-participant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.readd-participant-button {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 9px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
 
 .guest-form-field label { margin-bottom: 7px; }
 .guest-form-field input,
@@ -1386,11 +1415,13 @@ function renderGuests(guests) {
   });
 }
 
-function buildInvitationEditorParticipant(container, guest = null) {
+function buildInvitationEditorParticipant(container, guest = null, asNew = false) {
   const index = container.querySelectorAll('.participant-form-card').length;
   container.insertAdjacentHTML('beforeend', participantCardMarkup(index, guest, true));
   const item = container.lastElementChild;
-  if (guest?.id) item.dataset.guestId = guest.id;
+  // Поля заполняются из истории, но старый guest_id не переносится:
+  // повторное добавление создаёт новую запись с новым ID.
+  if (guest?.id && !asNew) item.dataset.guestId = guest.id;
   const remove = item.querySelector('[data-remove-participant]');
   if (remove) remove.addEventListener('click', () => {
     item.remove();
@@ -1427,6 +1458,7 @@ function openInvitationEditor(card, invitationId, focusNew = false) {
       <p>Изменяйте данные, добавляйте новых участников или исключайте их из состава. Ответы действующих участников сохраняются.</p>
     </div>
     <div data-editor-participants></div>
+    <div data-excluded-participants></div>
     <button class="add-participant-inline" data-add-editor-participant type="button">＋ Добавить участника</button>
     <div class="guest-form-footer">
       <button class="guest-action" data-cancel-editor type="button">Отмена</button>
@@ -1437,6 +1469,39 @@ function openInvitationEditor(card, invitationId, focusNew = false) {
   editor.querySelector('[data-invitation-name]').value = invitation.internal_name || '';
   const participants = editor.querySelector('[data-editor-participants]');
   members.forEach(guest => buildInvitationEditorParticipant(participants, guest));
+
+  const excludedMembers = dashboardGuests.filter(guest =>
+    guest.invitation_id === invitationId && guest.participant_status === 'excluded'
+  );
+  const excludedContainer = editor.querySelector('[data-excluded-participants]');
+  if (excludedMembers.length) {
+    const section = document.createElement('section');
+    section.className = 'excluded-participants';
+    const heading = document.createElement('h5');
+    heading.textContent = 'Ранее исключённые участники';
+    const hint = document.createElement('p');
+    hint.textContent = 'Повторное добавление создаст новую запись. Прежняя запись и история ответов сохранятся.';
+    section.append(heading, hint);
+
+    excludedMembers.forEach(guest => {
+      const row = document.createElement('div');
+      row.className = 'excluded-participant-row';
+      const name = document.createElement('span');
+      name.textContent = [guest.last_name, guest.first_name, guest.patronymic].filter(Boolean).join(' ');
+      const addAgain = document.createElement('button');
+      addAgain.type = 'button';
+      addAgain.className = 'readd-participant-button';
+      addAgain.textContent = 'Добавить снова';
+      addAgain.addEventListener('click', () => {
+        buildInvitationEditorParticipant(participants, guest, true);
+        participants.lastElementChild.querySelector('[data-field="full_name"]').focus();
+      });
+      row.append(name, addAgain);
+      section.appendChild(row);
+    });
+    excludedContainer.appendChild(section);
+  }
+
   editor.querySelector('[data-add-editor-participant]').addEventListener('click', () => {
     buildInvitationEditorParticipant(participants);
     participants.lastElementChild.querySelector('[data-field="full_name"]').focus();
