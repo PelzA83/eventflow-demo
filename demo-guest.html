@@ -41,6 +41,15 @@
       margin-bottom: 24px;
     }
 
+    .eyebrow.greeting-salutation {
+      font-size: clamp(28px, 7vw, 38px);
+      letter-spacing: normal;
+      line-height: 1.25;
+      text-transform: none;
+      color: #292820;
+      margin-bottom: 30px;
+    }
+
     .greeting-extra {
       max-width: 440px;
       margin: 0 auto 22px;
@@ -576,13 +585,6 @@
         margin-bottom: 76px;
       }
 
-      .greeting-name {
-        display: block;
-      }
-
-      .greeting-separator {
-        display: none;
-      }
     }
   </style>
 </head>
@@ -958,25 +960,17 @@
           continue;
         }
 
-        node.textContent = node.textContent.replace(pattern, (match, prefix, word) => prefix + word + '\u00A0');
-      }
-    }
-
-    // ФОРМИРОВАНИЕ ПРИВЕТСТВИЯ
-
-    function renderGreeting(group, guests, content = {}, settings = {}) {
-      const isIndividualInvitation = Boolean(guestId && guests.length === 1);
-      const individualGuest = isIndividualInvitation ? guests[0] : null;
-      const isRespectful = (individualGuest?.greeting_style || group?.greeting_style) === 'respectful';
+        node.textContent = node.textContent.replace(pattern,     function renderGreeting(group, guests, content = {}, settings = {}) {
+      const isRespectful = (guests.length === 1
+        ? guests[0].greeting_style || group?.greeting_style
+        : group?.greeting_style) === 'respectful';
       const heading = document.getElementById('greeting-heading');
       const date = document.getElementById('event-date');
       const namesContainer = document.getElementById('greeting-names');
       const intro = document.getElementById('greeting-intro');
       const additional = document.getElementById('greeting-additional');
 
-      heading.textContent = isIndividualInvitation && isRespectful
-        ? individualGuest.salutation_type === 'female' ? 'Уважаемая' : 'Уважаемый'
-        : isRespectful ? 'Уважаемые' : 'Дорогие друзья!';
+      heading.classList.add('greeting-salutation');
 
       const alignment = ['left', 'center', 'right'].includes(settings.alignment)
         ? settings.alignment
@@ -995,17 +989,11 @@
       additional.hidden = !additional.textContent.trim();
 
       namesContainer.replaceChildren();
+      namesContainer.hidden = true;
 
       const personalization = ['real', 'examples', 'none'].includes(settings.personalization)
         ? settings.personalization
         : 'real';
-
-      if (personalization === 'none') {
-        namesContainer.hidden = true;
-        return;
-      }
-
-      namesContainer.hidden = false;
 
       const names = personalization === 'examples'
         ? [
@@ -1013,30 +1001,59 @@
             { first_name: 'Мария' },
             { first_name: 'Максим' }
           ]
-        : guests;
+        : personalization === 'real'
+          ? guests.filter(guest => typeof guest.first_name === 'string' && guest.first_name.trim())
+          : [];
+
+      heading.replaceChildren();
+
+      if (names.length === 0) {
+        heading.textContent = isRespectful ? 'Уважаемые!' : 'Дорогие друзья!';
+        return;
+      }
+
+      let salutation;
+      if (names.length > 1) {
+        salutation = isRespectful ? 'Уважаемые' : 'Дорогие';
+      } else if (isRespectful) {
+        salutation = names[0].salutation_type === 'female' ? 'Уважаемая' : 'Уважаемый';
+      } else {
+        salutation = names[0].salutation_type === 'female' ? 'Дорогая' : 'Дорогой';
+      }
+
+      heading.appendChild(document.createTextNode(salutation + ' '));
 
       names.forEach((guest, index) => {
         const name = document.createElement('span');
         name.className = 'greeting-name';
 
-        const nameParts = [guest.first_name];
+        const nameParts = [guest.first_name.trim()];
 
         if (
           personalization === 'real' &&
           isRespectful &&
           ['male', 'female'].includes(guest.salutation_type) &&
-          guest.patronymic
+          typeof guest.patronymic === 'string' &&
+          guest.patronymic.trim()
         ) {
-          nameParts.push(guest.patronymic);
+          nameParts.push(guest.patronymic.trim());
         }
 
-        name.textContent = nameParts.filter(Boolean).join(' ');
-        namesContainer.appendChild(name);
+        name.textContent = nameParts.join(' ');
+        heading.appendChild(name);
 
         if (index < names.length - 1) {
           const separator = document.createElement('span');
           separator.className = 'greeting-separator';
           separator.textContent = index === names.length - 2 ? '\u00A0и\u00A0' : ', ';
+          heading.appendChild(separator);
+        }
+      });
+
+      heading.appendChild(document.createTextNode('!'));
+    }
+
+'\u00A0и\u00A0' : ', ';
           namesContainer.appendChild(separator);
         }
       });
