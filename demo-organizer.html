@@ -1600,8 +1600,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'additional_text', label: 'Дополнительный текст', type: 'textarea', full: true }
     ],
     settings: [
-      { key: 'personalization', label: 'Персонализация имён', type: 'select', options: [['real','Имена из списка гостей'],['examples','Демонстрационные имена'],['none','Без имён']] },
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'personalization', label: 'Персонализация имён', type: 'select', defaultValue: 'real', options: [['real','Имена из списка гостей'],['examples','Демонстрационные имена'],['none','Без имён']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
       { key: 'show_event_date', label: 'Показывать дату в приветствии', type: 'check', default: true }
     ]
   },
@@ -1611,8 +1611,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'paragraphs', label: 'Текст приглашения', type: 'paragraphs', full: true, help: 'Каждый абзац — с новой строки.' }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'text_style', label: 'Стиль текста', type: 'select', options: [['normal','Обычный'],['large','Крупный'],['italic','Курсив']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'text_style', label: 'Стиль текста', type: 'select', defaultValue: 'normal', options: [['normal','Обычный'],['large','Крупный'],['italic','Курсив']] },
       { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true }
     ]
   },
@@ -1622,8 +1622,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'subtitle', label: 'Дополнительная строка', type: 'text', full: true }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'text_style', label: 'Стиль', type: 'select', options: [['normal','Обычный'],['italic','Курсив'],['large','Крупный']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'text_style', label: 'Стиль', type: 'select', defaultValue: 'italic', options: [['normal','Обычный'],['italic','Курсив'],['large','Крупный']] },
       { key: 'show_subtitle', label: 'Показывать дополнительную строку', type: 'check', default: true }
     ]
   },
@@ -1633,8 +1633,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'items', label: 'Порядок и подписи данных', type: 'eventItems', full: true, help: 'Одна строка на пункт: date, time, venue или address | подпись. Например: time | Начало в' }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'layout', label: 'Компоновка', type: 'select', options: [['normal','Обычная'],['compact','Компактная']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Компоновка', type: 'select', defaultValue: 'normal', options: [['normal','Обычная'],['compact','Компактная']] },
       { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
       { key: 'show_labels', label: 'Показывать подписи', type: 'check', default: true }
     ]
@@ -1646,8 +1646,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'items', label: 'Пункты дресс-кода', type: 'lines', full: true, help: 'Каждый пункт — с новой строки.' }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'layout', label: 'Расположение изображения', type: 'select', options: [['stacked','Изображение сверху'],['image-left','Изображение слева'],['image-right','Изображение справа']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Расположение изображения', type: 'select', defaultValue: 'stacked', options: [['stacked','Изображение сверху'],['image-left','Изображение слева'],['image-right','Изображение справа']] },
       { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
       { key: 'show_image', label: 'Показывать изображение, если оно добавлено', type: 'check', default: true }
     ]
@@ -1659,8 +1659,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'sections', label: 'Разделы и блюда', type: 'menuSections', full: true, help: 'Формат: Название раздела: блюдо 1; блюдо 2. Каждый раздел — с новой строки.' }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'layout', label: 'Компоновка', type: 'select', options: [['stacked','Один под другим'],['columns','Колонки']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Компоновка', type: 'select', defaultValue: 'stacked', options: [['stacked','Один под другим'],['columns','Колонки']] },
       { key: 'show_title', label: 'Показывать заголовок', type: 'check', default: true },
       { key: 'show_description', label: 'Показывать описание', type: 'check', default: true }
     ]
@@ -1672,8 +1672,8 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'items', label: 'Дополнительные пункты', type: 'lines', full: true, help: 'Каждый пункт — с новой строки.' }
     ],
     settings: [
-      { key: 'alignment', label: 'Выравнивание', type: 'select', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
-      { key: 'layout', label: 'Расположение схемы', type: 'select', options: [['stacked','Сверху'],['image-left','Слева'],['image-right','Справа']] },
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] },
+      { key: 'layout', label: 'Расположение схемы', type: 'select', defaultValue: 'stacked', options: [['stacked','Сверху'],['image-left','Слева'],['image-right','Справа']] },
       { key: 'show_image', label: 'Показывать схему, если она добавлена', type: 'check', default: true }
     ]
   }
@@ -1682,6 +1682,7 @@ const BLOCK_EDITOR_SCHEMAS = {
 function editorValue(data, field) {
   const value = data?.[field.key];
   if (field.type === 'check') return typeof value === 'boolean' ? value : field.default !== false;
+  if (field.type === 'select') return value == null || value === '' ? (field.defaultValue || field.options?.[0]?.[0] || '') : String(value);
   if (field.type === 'lines') return Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item?.text || item?.label || item?.name || '').filter(Boolean).join('\n') : '';
   if (field.type === 'paragraphs') return Array.isArray(value) ? value.join('\n\n') : '';
   if (field.type === 'eventItems') return Array.isArray(value) ? value.map(item => item.type + ' | ' + (item.label || '')).join('\n') : '';
