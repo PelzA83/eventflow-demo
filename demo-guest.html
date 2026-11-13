@@ -950,6 +950,33 @@
       );
       renderQrCode(guestId ? { ...state, guests: invitationGuests } : state, getBlock('qr_code'));
 
+      // Общие блоки участника доступны после подтверждения хотя бы одного
+      // участника групповой ссылки или самого гостя персональной ссылки.
+      const canSeeSharedParticipantBlocks = guestId
+        ? invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
+        : state.guests.some(guest => guest.rsvp_status === 'confirmed');
+
+      // Персональные сведения доступны только по персональной ссылке
+      // тому гостю, который сам подтвердил участие.
+      const canSeePersonalParticipantInfo = Boolean(
+        guestId && invitationGuests.some(guest => guest.rsvp_status === 'confirmed')
+      );
+
+      const preDecisionKeys = new Set([
+        'greeting', 'invitation_text', 'couple_signature', 'event_info', 'rsvp'
+      ]);
+      document.querySelectorAll('.event-block[data-block-key]').forEach(element => {
+        if (!preDecisionKeys.has(element.dataset.blockKey) &&
+            !canSeeSharedParticipantBlocks) {
+          element.hidden = true;
+        }
+      });
+
+      const personalSeatCard = document.querySelector('.personal-seat-card');
+      if (personalSeatCard) {
+        personalSeatCard.hidden = !canSeePersonalParticipantInfo;
+      }
+
       renderGuests(invitationGuests);
 
       const commentField = document.getElementById('rsvp-comment');
@@ -1765,9 +1792,20 @@
         element.hidden = settings.is_visible === false;
       });
 
+      const preRsvpKeys = new Set([
+        'greeting', 'invitation_text', 'couple_signature', 'event_info'
+      ]);
+      const blockStage = key => key === 'rsvp'
+        ? 1
+        : preRsvpKeys.has(key) ? 0 : 2;
+
       const orderedElements = blockElements
         .filter(element => blockSettings.has(element.dataset.blockKey))
         .sort((a, b) => {
+          const stageDifference = blockStage(a.dataset.blockKey) -
+            blockStage(b.dataset.blockKey);
+          if (stageDifference !== 0) return stageDifference;
+
           const aOrder = Number(blockSettings.get(a.dataset.blockKey).sort_order ?? 0);
           const bOrder = Number(blockSettings.get(b.dataset.blockKey).sort_order ?? 0);
           return aOrder - bOrder;
