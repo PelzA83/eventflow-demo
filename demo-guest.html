@@ -432,6 +432,28 @@
       font-size: 28px;
     }
 
+    .personal-seat-card { width:100%; max-width:360px; margin:0 auto 22px; padding:24px 20px; border:1px solid #d9d1c2; border-radius:3px; background:#fbf9f4; }
+    .personal-seat-label { display:block; color:#8b8068; font:10px Arial,sans-serif; letter-spacing:2px; }
+    .personal-seat-values { display:flex; align-items:center; justify-content:center; gap:28px; margin-top:16px; }
+    .personal-seat-values div { display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .personal-seat-values strong { color:#343127; font:400 43px Georgia,serif; }
+    .personal-seat-values span { color:#817c6e; font:11px Arial,sans-serif; letter-spacing:.6px; }
+    .personal-seat-values i { width:1px; height:42px; background:#d9d1c2; }
+    .seating-plan-toggle { margin-top:20px; padding:12px 17px; border:1px solid #bdb39f; background:transparent; color:#5e594e; font:12px Arial,sans-serif; cursor:pointer; }
+    .seating-plan-toggle span { margin-left:8px; }
+    .seating-full-plan { width:100%; margin-top:22px; padding:18px 12px; border:1px solid #e0dbd1; background:#fbfaf7; }
+    .seating-plan-stage { width:64%; margin:0 auto 20px; padding:8px; border:1px dashed #c9c1b2; color:#817c6e; font:9px Arial,sans-serif; letter-spacing:1.5px; }
+    .seating-plan-tables { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; max-width:330px; margin:auto; }
+    .seating-plan-table { aspect-ratio:1; width:100%; max-width:88px; justify-self:center; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #c9c1b2; border-radius:50%; background:#f0ede5; box-shadow:inset 0 0 0 5px #fbfaf7; }
+    .seating-plan-table b { font:400 20px Georgia,serif; }.seating-plan-table small { margin-top:3px; color:#817c6e; font:9px Arial,sans-serif; }
+    .seating-plan-table.is-yours { border:2px solid #8e805f; background:#e9e1d0; }
+    .seating-plan-caption { margin:16px 0 0; color:#817c6e; font:10px Arial,sans-serif; }
+    .gifts-wishes { text-align:center; }.gift-ornament { color:#a08e69; font-size:22px; margin-bottom:14px; }
+    .gifts-intro { max-width:410px; margin:0 auto 26px; color:#6f6a5f; font-size:16px; line-height:1.7; }
+    .gift-note { max-width:410px; margin:14px auto 0; padding:19px 20px; border:1px solid #e2ddd2; background:#fbf9f4; }
+    .gift-note-kicker { color:#978866; font:9px Arial,sans-serif; letter-spacing:1.8px; }.gift-note p { margin:9px 0 0; color:#5f5b52; font-size:15px; line-height:1.65; }
+    @media (max-width:480px) { .personal-seat-values { gap:22px; }.seating-plan-tables { gap:8px; } }
+
     .connection-status {
       margin-top: 30px;
       font-family: Arial, sans-serif;
@@ -667,10 +689,33 @@
         <div class="seating-content" id="seating-content">
           <img class="seating-image" id="seating-image" alt="" hidden>
           <div class="seating-text">
+            <div class="personal-seat-card">
+              <span class="personal-seat-label">ВАШЕ МЕСТО</span>
+              <div class="personal-seat-values"><div><strong>05</strong><span>стол</span></div><i aria-hidden="true"></i><div><strong>03</strong><span>место</span></div></div>
+            </div>
             <p class="seating-description" id="seating-description" hidden></p>
             <ul class="seating-items" id="seating-items" hidden></ul>
+            <button class="seating-plan-toggle" id="seating-plan-toggle" type="button" aria-expanded="false" aria-controls="seating-full-plan">Посмотреть план всех столов <span aria-hidden="true">↗</span></button>
+            <div class="seating-full-plan" id="seating-full-plan" hidden>
+              <div class="seating-plan-stage">СЦЕНА / ТАНЦПОЛ</div>
+              <div class="seating-plan-tables">
+                <div class="seating-plan-table"><b>01</b><small>8 мест</small></div><div class="seating-plan-table"><b>02</b><small>8 мест</small></div><div class="seating-plan-table"><b>03</b><small>10 мест</small></div>
+                <div class="seating-plan-table"><b>04</b><small>8 мест</small></div><div class="seating-plan-table is-yours"><b>05</b><small>ваш стол</small></div><div class="seating-plan-table"><b>06</b><small>8 мест</small></div>
+              </div>
+              <p class="seating-plan-caption">Схема зала — демонстрационный пример</p>
+            </div>
           </div>
         </div>
+      </section>
+    </section>
+
+    <section class="event-block" id="block-gifts-wishes" data-block-key="gifts_wishes" hidden>
+      <section class="details gifts-wishes">
+        <div class="gift-ornament" aria-hidden="true">✦</div>
+        <h2>Подарки и пожелания</h2>
+        <p class="gifts-intro">Самое главное для нас — разделить этот день с вами. Если вы захотите сделать нам подарок, будем благодарны за внимание к нашим небольшим пожеланиям.</p>
+        <div class="gift-note"><span class="gift-note-kicker">О ПОДАРКАХ</span><p>Будем рады вкладу в наше общее семейное путешествие. Конверт станет самым удобным способом поздравить нас.</p></div>
+        <div class="gift-note"><span class="gift-note-kicker">ВАШИ ПОЖЕЛАНИЯ</span><p>Оставьте добрые слова и пожелания — мы с удовольствием сохраним их на память об этом дне.</p></div>
       </section>
     </section>
 
@@ -746,7 +791,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=10', { name: 'eventflow-demo-v10' });
+        const worker = new SharedWorker('./demo-worker.js?v=11', { name: 'eventflow-demo-v11' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
@@ -1271,12 +1316,14 @@
       title.textContent = titleText;
       title.hidden = settings.show_title === false || !titleText;
 
-      description.textContent = typeof content.description === 'string'
+      description.textContent = typeof content.description === 'string' && content.description.trim()
         ? content.description.trim()
-        : '';
+        : 'Праздничный образ, в котором вам будет комфортно провести этот день. Будем рады видеть вас в мягкой, гармоничной палитре.';
       description.hidden = !description.textContent;
 
-      const items = Array.isArray(content.items) ? content.items : [];
+      const items = Array.isArray(content.items) && content.items.length
+        ? content.items
+        : ['Молочные и сливочные оттенки', 'Песочный, бежевый и мягкий серый', 'Небольшие акценты в природных тонах'];
       itemsContainer.replaceChildren();
 
       items.forEach(item => {
@@ -1354,15 +1401,15 @@
         : 'center';
       block.style.textAlign = alignment;
 
-      const titleText = typeof content.title === 'string'
+      const titleText = typeof content.title === 'string' && content.title.trim()
         ? content.title.trim()
-        : '';
+        : 'Праздничное меню';
       title.textContent = titleText;
       title.hidden = settings.show_title === false || !titleText;
 
-      const descriptionText = typeof content.description === 'string'
+      const descriptionText = typeof content.description === 'string' && content.description.trim()
         ? content.description.trim()
-        : '';
+        : 'В течение вечера вас ждут любимые вкусы, сезонные продукты и угощения для хорошего настроения.';
       description.textContent = descriptionText;
       description.hidden = settings.show_description === false || !descriptionText;
 
@@ -1457,15 +1504,15 @@
         : 'center';
       block.style.textAlign = alignment;
 
-      const titleText = typeof content.title === 'string'
+      const titleText = typeof content.title === 'string' && content.title.trim()
         ? content.title.trim()
-        : '';
+        : 'Ваше место на празднике';
       title.textContent = titleText;
       title.hidden = settings.show_title === false || !titleText;
 
-      description.textContent = typeof content.description === 'string'
+      description.textContent = typeof content.description === 'string' && content.description.trim()
         ? content.description.trim()
-        : '';
+        : 'Найдите свой стол на общей схеме зала — персональное место указано выше.';
       description.hidden = !description.textContent;
 
       const items = Array.isArray(content.items) ? content.items : [];
@@ -1764,6 +1811,18 @@
       'submit',
       submitRSVP
     );
+
+    // ОБЩАЯ СХЕМА РАССАДКИ ОТКРЫВАЕТСЯ ОТДЕЛЬНО ОТ ПЕРСОНАЛЬНОГО МЕСТА
+    document.getElementById('seating-plan-toggle').addEventListener('click', event => {
+      const button = event.currentTarget;
+      const plan = document.getElementById('seating-full-plan');
+      const willOpen = plan.hidden;
+      plan.hidden = !willOpen;
+      button.setAttribute('aria-expanded', String(willOpen));
+      button.innerHTML = willOpen
+        ? 'Скрыть общий план <span aria-hidden="true">↙</span>'
+        : 'Посмотреть план всех столов <span aria-hidden="true">↗</span>';
+    });
 
     // ЗАПУСК
 
