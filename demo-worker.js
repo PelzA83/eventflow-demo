@@ -387,6 +387,95 @@ function updateGuest(session, guestId, patch) {
   return true;
 }
 
+function updateInvitation(session, fields) {
+  if (!isPlainObject(fields)) return false;
+  const invitationId = String(fields.invitation_id || "").trim();
+  const invitation = session.state.invitations.find(item => item.id === invitationId);
+  if (!invitation || !Array.isArray(fields.participants) || fields.participants.length < 1) return false;
+
+  const currentMembers = session.state.guests.filter(guest =>
+    guest.invitation_id === invitationId && guest.participant_status !== "excluded"
+  );
+  const currentById = new Map(currentMembers.map(guest => [guest.id, guest]));
+  const normalized = [];
+  const seenIds = new Set();
+
+  for (const item of fields.participants) {
+    if (!isPlainObject(item)) return false;
+    const firstName = String(item.first_name || "").trim();
+    const lastName = String(item.last_name || "").trim();
+    const guestId = String(item.guest_id || "").trim();
+    if (!firstName || !lastName) return false;
+    if (guestId && (!currentById.has(guestId) || seenIds.has(guestId))) return false;
+    if (guestId) seenIds.add(guestId);
+    normalized.push({
+      guest_id: guestId,
+      first_name: firstName,
+      last_name: lastName,
+      patronymic: String(item.patronymic || "").trim(),
+      salutation_type: ["male", "female"].includes(item.salutation_type) ? item.salutation_type : "auto",
+      greeting_style: item.greeting_style === "informal" ? "informal" : "respectful"
+    });
+  }
+
+  const beforeConfirmed = currentMembers
+    .filter(guest => guest.rsvp_status === "confirmed")
+    .map(guest => guest.id).sort().join("|");
+
+  // Все поля проверены до изменения состояния. Состав обновляется одной операцией.
+  invitation.internal_name = String(fields.internal_name || "").trim();
+  const retainedIds = new Set();
+
+  for (const participant of normalized) {
+    if (participant.guest_id) {
+      const guest = currentById.get(participant.guest_id);
+      Object.assign(guest, {
+        first_name: participant.first_name,
+        last_name: participant.last_name,
+        patronymic: participant.patronymic,
+        salutation_type: participant.salutation_type,
+        greeting_style: participant.greeting_style
+      });
+      retainedIds.add(guest.id);
+    } else {
+      const guestId = createRecordId("guest");
+      session.state.guests.push({
+        id: guestId,
+        invitation_id: invitationId,
+        participant_status: "active",
+        excluded_at: null,
+        first_name: participant.first_name,
+        last_name: participant.last_name,
+        patronymic: participant.patronymic,
+        salutation_type: participant.salutation_type,
+        greeting_style: participant.greeting_style,
+        role: "guest",
+        group_name: String(session.state.group?.name || "").trim(),
+        attendance: null,
+        rsvp_status: "pending",
+        responded_at: null
+      });
+      retainedIds.add(guestId);
+    }
+  }
+
+  for (const guest of currentMembers) {
+    if (!retainedIds.has(guest.id)) {
+      guest.participant_status = "excluded";
+      guest.excluded_at = new Date().toISOString();
+    }
+  }
+
+  const afterConfirmed = session.state.guests
+    .filter(guest => guest.invitation_id === invitationId &&
+      guest.participant_status !== "excluded" && guest.rsvp_status === "confirmed")
+    .map(guest => guest.id).sort().join("|");
+
+  if (beforeConfirmed !== afterConfirmed) invitation.qr_revision = Number(invitation.qr_revision || 0) + 1;
+  invitation.updated_at = new Date().toISOString();
+  return true;
+}
+
 function submitRsvp(session, responses, comment) {
   if (!Array.isArray(responses)) return false;
 
@@ -438,6 +527,9 @@ function applyMessage(session, message) {
 
     case "update-guest":
       return updateGuest(session, String(message.guestId || ""), message.patch);
+
+    case "update-invitation":
+      return updateInvitation(session, message.fields);
 
     case "submit-rsvp":
       return submitRsvp(session, message.responses, message.comment);
