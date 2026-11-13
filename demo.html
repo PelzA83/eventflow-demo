@@ -276,6 +276,7 @@
         const target = new URL("demo-organizer.html", location.href);
         target.searchParams.set("view", role);
         target.searchParams.set("context", id);
+        target.searchParams.set("product", productType);
         const opened = window.open(target.toString(), "_blank");
         if (!opened) {
           document.getElementById("sessionInfo").textContent =
