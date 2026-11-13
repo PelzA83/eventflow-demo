@@ -1401,7 +1401,7 @@ function openInvitationEditor(card, invitationId, focusNew = false) {
     for (let index = 0; index < cards.length; index += 1) {
       const item = cards[index];
       const fullName = item.querySelector('[data-field="full_name"]').value.trim();
-      const parts = fullName.split(/\\s+/).filter(Boolean);
+      const parts = fullName.split(/\s+/).filter(Boolean);
       if (parts.length < 2) {
         message.textContent = 'Укажите фамилию и имя участника ' + (index + 1) + '.';
         item.querySelector('[data-field="full_name"]').focus();
