@@ -1677,6 +1677,26 @@ const BLOCK_EDITOR_SCHEMAS = {
       { key: 'layout', label: 'Расположение схемы', type: 'select', defaultValue: 'stacked', options: [['stacked','Сверху'],['image-left','Слева'],['image-right','Справа']] },
       { key: 'show_image', label: 'Показывать схему, если она добавлена', type: 'check', default: true }
     ]
+  },
+  gifts_wishes: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'intro', label: 'Вступительный текст', type: 'textarea', full: true },
+      { key: 'notes', label: 'Пожелания и подсказки', type: 'giftNotes', full: true, help: 'Каждая строка: заголовок | текст. Например: О подарках | Будем рады вашему вниманию.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] }
+    ]
+  },
+  getting_there: {
+    content: [
+      { key: 'title', label: 'Заголовок', type: 'text', full: true },
+      { key: 'description', label: 'Вступительный текст', type: 'textarea', full: true },
+      { key: 'routes', label: 'Способы добраться', type: 'routes', full: true, help: 'Каждая строка: название | пояснение.' }
+    ],
+    settings: [
+      { key: 'alignment', label: 'Выравнивание', type: 'select', defaultValue: 'center', options: [['left','Слева'],['center','По центру'],['right','Справа']] }
+    ]
   }
 };
 
@@ -1685,6 +1705,7 @@ function editorValue(data, field) {
   if (field.type === 'check') return typeof value === 'boolean' ? value : field.default !== false;
   if (field.type === 'select') return value == null || value === '' ? (field.defaultValue || field.options?.[0]?.[0] || '') : String(value);
   if (field.type === 'lines') return Array.isArray(value) ? value.map(item => typeof item === 'string' ? item : item?.text || item?.label || item?.name || '').filter(Boolean).join('\n') : '';
+  if (field.type === 'giftNotes' || field.type === 'routes') return Array.isArray(value) ? value.map(item => (item.label || '') + ' | ' + (field.type === 'giftNotes' ? item.text || '' : item.text || '')).join('\n') : '';
   if (field.type === 'paragraphs') return Array.isArray(value) ? value.join('\n\n') : '';
   if (field.type === 'eventItems') return Array.isArray(value) ? value.map(item => item.type + ' | ' + (item.label || '')).join('\n') : '';
   if (field.type === 'menuSections') return Array.isArray(value) ? value.map(section => {
@@ -1711,7 +1732,7 @@ function createBlockEditorField(field, data, part) {
   }
   const label = document.createElement('label');
   label.textContent = field.label;
-  const input = field.type === 'textarea' || ['lines','paragraphs','eventItems','menuSections'].includes(field.type)
+  const input = field.type === 'textarea' || ['lines','paragraphs','eventItems','menuSections','giftNotes','routes'].includes(field.type)
     ? document.createElement('textarea')
     : field.type === 'select' ? document.createElement('select') : document.createElement('input');
   if (field.type === 'select') {
@@ -1777,6 +1798,12 @@ function buildBlockEditor(block) {
       if (field.type === 'check') target[key] = input.checked;
       else if (field.type === 'lines') target[key] = input.value.split(/\r?\n/).map(value => value.trim()).filter(Boolean);
       else if (field.type === 'paragraphs') target[key] = input.value.split(/\n\s*\n|\r?\n/).map(value => value.trim()).filter(Boolean);
+      else if (field.type === 'giftNotes' || field.type === 'routes') {
+        target[key] = input.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+          const parts = line.split('|');
+          return { label: (parts[0] || '').trim(), text: parts.slice(1).join('|').trim() };
+        }).filter(item => item.label || item.text);
+      }
       else if (field.type === 'eventItems') {
         target[key] = input.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
           const parts = line.split('|');
