@@ -23,7 +23,7 @@ const BLOCK_KEYS = [
 function createInitialState() {
   const now = new Date().toISOString();
 
-  return {
+  const state = {
     schema_version: 2,
     revision: 0,
     updatedAt: now,
@@ -34,12 +34,12 @@ function createInitialState() {
     event: {
       id: "demo-event",
       title: "Новогодний вечер",
-      date: "",
-      event_date: "",
-      event_time: "",
-      timezone: "",
-      venue_name: "",
-      venue_address: "",
+      date: "2026-12-18",
+      event_date: "2026-12-18",
+      event_time: "18:00",
+      timezone: "Asia/Yekaterinburg",
+      venue_name: "Загородная площадка",
+      venue_address: "Екатеринбург и пригород · точный адрес уточняется",
       rsvp_deadline: "",
       status: "active"
     },
@@ -134,6 +134,48 @@ function createInitialState() {
       comment: ""
     }
   };
+
+  // Небольшой демонстрационный набор позволяет сразу показать гостевой
+  // сценарий и кабинет организатора без предварительного ручного заполнения.
+  const sampleInvitation = createInvitation(state, {
+    internal_name: "Семья Ивановых"
+  });
+  state.guests.push(
+    {
+      id: createRecordId("guest"),
+      invitation_id: sampleInvitation.id,
+      participant_status: "active",
+      excluded_at: null,
+      first_name: "Александр",
+      last_name: "Иванов",
+      patronymic: "Сергеевич",
+      salutation_type: "male",
+      greeting_style: "respectful",
+      role: "guest",
+      group_name: state.group.name,
+      attendance: null,
+      rsvp_status: "pending",
+      responded_at: null
+    },
+    {
+      id: createRecordId("guest"),
+      invitation_id: sampleInvitation.id,
+      participant_status: "active",
+      excluded_at: null,
+      first_name: "Мария",
+      last_name: "Иванова",
+      patronymic: "Андреевна",
+      salutation_type: "female",
+      greeting_style: "respectful",
+      role: "guest",
+      group_name: state.group.name,
+      attendance: null,
+      rsvp_status: "pending",
+      responded_at: null
+    }
+  );
+
+  return state;
 }
 
 function createRecordId(prefix) {
