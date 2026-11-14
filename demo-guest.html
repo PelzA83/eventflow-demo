@@ -1171,9 +1171,6 @@
     function renderGreeting(group, guests, content = {}, settings = {}) {
       const getGreetingStyle = guest =>
         guest?.greeting_style || group?.greeting_style || 'respectful';
-      const isRespectful = names.length > 0
-        ? names.some(guest => getGreetingStyle(guest) === 'respectful')
-        : (group?.greeting_style || 'respectful') === 'respectful';
       const heading = document.getElementById('greeting-heading');
       const date = document.getElementById('event-date');
       const namesContainer = document.getElementById('greeting-names');
@@ -1214,6 +1211,13 @@
         : personalization === 'real'
           ? guests.filter(guest => typeof guest.first_name === 'string' && guest.first_name.trim())
           : [];
+
+      // Если в группе есть хотя бы один адресат с уважительным стилем,
+      // общее обращение остаётся уважительным. Отчество добавляется
+      // индивидуально — только участникам с уважительным стилем.
+      const isRespectful = names.length > 0
+        ? names.some(guest => getGreetingStyle(guest) === 'respectful')
+        : (group?.greeting_style || 'respectful') === 'respectful';
 
       heading.replaceChildren();
       heading.hidden = false;
