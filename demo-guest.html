@@ -862,7 +862,7 @@
       }
 
       try {
-        const worker = new SharedWorker('./demo-worker.js?v=20', { name: 'eventflow-demo-v20' });
+        const worker = new SharedWorker('./demo-worker.js?v=21', { name: 'eventflow-demo-v21' });
         demoPort = worker.port;
 
         demoPort.onmessage = event => {
@@ -1169,9 +1169,11 @@
     }
 
     function renderGreeting(group, guests, content = {}, settings = {}) {
-      const isRespectful = (guests.length === 1
-        ? guests[0].greeting_style || group?.greeting_style
-        : group?.greeting_style) === 'respectful';
+      const getGreetingStyle = guest =>
+        guest?.greeting_style || group?.greeting_style || 'respectful';
+      const isRespectful = names.length > 0
+        ? names.some(guest => getGreetingStyle(guest) === 'respectful')
+        : (group?.greeting_style || 'respectful') === 'respectful';
       const heading = document.getElementById('greeting-heading');
       const date = document.getElementById('event-date');
       const namesContainer = document.getElementById('greeting-names');
@@ -1244,7 +1246,7 @@
         const nameParts = [guest.first_name.trim()];
         if (
           personalization === 'real' &&
-          isRespectful &&
+          getGreetingStyle(guest) === 'respectful' &&
           typeof guest.patronymic === 'string' &&
           guest.patronymic.trim()
         ) {
