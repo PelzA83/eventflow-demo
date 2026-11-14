@@ -123,7 +123,7 @@ function createInitialState(productType = "corporate") {
 
       const isVisible = isWedding
         ? [
-            "greeting", "invitation_text", "event_info",
+            "greeting", "invitation_text", "couple_signature", "event_info",
             "dress_code", "menu", "getting_there", "rsvp", "qr_code",
             "gifts_wishes", "seating"
           ].includes(block_key)
