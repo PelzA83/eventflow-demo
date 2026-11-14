@@ -289,7 +289,7 @@
           <p class="product-group-description">Приглашения для личных праздников — от первого обращения до подтверждения гостей.</p>
           <fieldset class="product-options" aria-label="Торжества">
             <label class="product-option">
-              <input type="radio" name="productType" value="wedding" checked>
+              <input type="radio" name="productType" value="wedding">
               <span class="product-dot" aria-hidden="true"></span>
               <span class="product-option-text">Свадебное<span class="product-status">Доступно в демо</span></span>
             </label>
@@ -305,9 +305,9 @@
           <p class="product-group-description">Инструменты для приглашения, регистрации и координации участников событий.</p>
           <fieldset class="product-options" aria-label="Мероприятия">
             <label class="product-option">
-              <input type="radio" name="productType" value="corporate">
+              <input type="radio" name="productType" value="corporate" checked>
               <span class="product-dot" aria-hidden="true"></span>
-              <span class="product-option-text">Корпоративное<span class="product-status">Доступно в демо</span></span>
+              <span class="product-option-text">Новогоднее<span class="product-status">Доступно в демо</span></span>
             </label>
             <div class="product-option disabled" aria-disabled="true">
               <span class="product-dot" aria-hidden="true"></span>
@@ -373,7 +373,7 @@
       if (!("SharedWorker" in window)) {
         throw new Error("Этот браузер не поддерживает SharedWorker. Откройте демо в актуальной версии Chrome, Edge, Firefox или Safari.");
       }
-      const worker = new SharedWorker("./demo-worker.js?v=20", { name: "eventflow-demo-v20" });
+      const worker = new SharedWorker("./demo-worker.js?v=21", { name: "eventflow-demo-v21" });
       worker.port.start();
       return worker.port;
     }
@@ -389,7 +389,7 @@
       anchorPort = createWorkerPort();
       anchorPort.postMessage({ type: "init", contextId, productType });
       document.getElementById("sessionInfo").textContent =
-        (productType === "wedding" ? "Свадебная демосессия" : "Корпоративная демосессия") +
+        (productType === "wedding" ? "Свадебная демосессия" : "Новогодняя демосессия") +
         " · " + contextId;
       return contextId;
     }
